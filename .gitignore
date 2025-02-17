@@ -2,3 +2,8 @@
 .clj-kondo/
 .lsp/
 translation.txt
+output.txt
+progress.json
+translation.log
+myenv/
+__pycache__/
