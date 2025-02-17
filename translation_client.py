@@ -62,14 +62,19 @@ class TranslationClient:
 
         {context}
         
+                     
         Guidelines:
         - Maintain consistency in terminology with previous translations
         - Ensure smooth transitions between chunks
         - Use Sanskrit terms if that is appropriate according to the norms of Tibetan translations into English
-        - Include original Tibetan terms in brackets if the term is particularly technical or obscure
-        - Use enumerations where applicable
-        - Do not add any comments, give ONLY the translated words
-
+        - Include original Tibetan terms in brackets if the term is particularly technical or obscure, or the translation needs clarification
+        - Use enumerations where applicable (e.g., "Second, blah blah" becomes "2. Blah blah")
+        - If the text says something like 'There are two parts', list them as '1.' and '2.' Remember these enumerations and use them as headings of they are explained in more detail later
+        - If an enumerated part has subparts or subsections, enumerate them as 1.1, 1.2, etc. and likewise if there are further sub-enumerations then use 1.1.1, 1.1.2 and so forth 
+        - Do not put a dot after subenumerations, e.g. 1.1.2 not 1.1.2. and 1.2 not 1.2. and so forth
+        - Create numbered lists for any enumerated items, but otherwise do not use lists
+        - Do not say 'Here is the translation' or add any of your own comments or words. Give me ONLY the translated words.
+        
         Translate the following text:
 
         {text}
