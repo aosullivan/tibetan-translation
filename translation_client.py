@@ -78,24 +78,23 @@ class TranslationClient:
     def _parse_translation_response(response: str) -> tuple[str, str]:
         """
         Parse the response to extract translation and untranslated fragment.
-        
-        The response should contain an "UNTRANSLATED:" marker followed by Tibetan text
-        that represents an incomplete sentence at the end of the chunk.
-        
-        Returns:
-            tuple[str, str]: (translated_text, untranslated_fragment)
+        Ensures no partial sentences in the translation.
         """
         if "UNTRANSLATED:" not in response:
-            # If no marker is found, assume the last sentence might be incomplete
-            sentences = response.split("། ")  # Split on Tibetan sentence boundary marker
-            if len(sentences) > 1:
-                complete = "། ".join(sentences[:-1]) + "། "
-                incomplete = sentences[-1]
-                return complete, incomplete
-            return response.strip(), ""
+            # If no marker found, look for last complete sentence
+            sentences = [s.strip() + "." for s in response.split(".") if s.strip()]
+            if not sentences:
+                return "", response.strip()
+            return " ".join(sentences), ""
             
-        parts = response.split("UNTRANSLATED:", 1)
-        return parts[0].strip(), parts[1].strip()
+        translation, untranslated = response.split("UNTRANSLATED:", 1)
+        # Verify translation doesn't end with partial sentence
+        if translation.strip().endswith('...'):
+            # Remove the partial sentence
+            sentences = translation.split('.')
+            translation = '.'.join(sentences[:-1]) + '.'
+            
+        return translation.strip(), untranslated.strip()
 
     def generate_summary(self, text: str) -> str:
         """Generate summary with error handling"""
@@ -135,20 +134,30 @@ class TranslationClient:
 
         {context}
                      
-        Guidelines:        
-        - When you encounter an incomplete sentence at the end of the chunk:
-          1. Stop at the last complete sentence and do NOT translate anything after that
-          2. Add "UNTRANSLATED:" followed by the remaining untranslated Tibetan text
-        - Once you have added the UNTRANSLATED, be sure to EXCLUDE the equivalent English translation from the response. Anything Tibetan that is UNTRANSLATED must NOT have an English translation
-        - Do NOT give any commentary or any notes. Give ONLY the translation and any untranslated Tibeten text. Do not say e.g. 'Here is a faithful English translation' or 'Here is my translation'
-        - The untranslated text will be prepended to the next chunk
-        - Never attempt to complete partial sentences - they must be translated as a whole
-        - If you receive Tibetan text starting with an incomplete sentence (from previous chunk), translate it as part of the first complete sentence
-        - Use Sanskrit terms where appropriate
-        - If the translation says there are a number of parts or sections, just list them if possible e.g.  instead of 'This has two parts:', just list the parts as a numbered list
-        - Include original Tibetan terms in brackets if technical or unclear, or if you are not sure how to translate them
-        - Use enumerations where applicable (e.g., "Second..." becomes "2.")
-        - For subparts, use format: 1.1, 1.2, etc. 
+        CRITICAL INSTRUCTIONS FOR HANDLING INCOMPLETE SENTENCES:
+        1. Scan the text to identify the last complete Tibetan sentence (ending with '།')
+        2. Only translate up to that last complete sentence
+        3. After your translation, on a new line, write "UNTRANSLATED:" followed by ALL remaining Tibetan text
+        4. Do not provide ANY English translation for the untranslated portion
+        5. Never leave a sentence unfinished in English
+        
+        Example:
+        Tibetan: "rgyud bsam gyis mi khyab pa dang gsang ba gnyis su med pa'i rgyud rnams zhus nas spyan drangs pas skor ne ru pa'i rgyud lnga zhes grags cing*/_de thams cad kyang"
+        Correct: 
+        Having requested the inconceivable tantras and the non-dual secret tantras, [this collection] became renowned as the "Five Tantras of Nerupa". 
+        UNTRANSLATED: de thams cad kyang
+        
+        Incorrect:
+        Having requested the inconceivable tantras and the non-dual secret tantras, [this collection] became renowned as the "Five Tantras of Nerupa".  All of these
+        UNTRANSLATED: UNTRANSLATED: de thams cad kyang
+
+        Additional Guidelines:
+        - Do NOT give any commentary or notes, e.g. do not say "Here is the translation" or "I will translate the text"
+        - Use Sanskrit terms and names where appropriate
+        - Include original Tibetan terms in brackets if technical or unclear
+        - Use enumerations (e.g., "Second..." becomes "2.")
+        - Use enumerated lists, e.g. instead of 'There are two parts: foo and bar', say '1. Foo.\n2. Bar'
+        - For subparts, use format: 1.1, 1.2, etc.
         
         Translate the following text:
         {text}
