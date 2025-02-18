@@ -45,29 +45,31 @@ class FileHandler:
             raise
 
     def initialize_output_file(self):
-        """Clear or create the output file"""
-        with open(cfg.OUTPUT_FILE, 'w', encoding='utf-8') as f:
-            f.write('')
+        """Load existing content from output file or create if doesn't exist"""
+        try:
+            with open(cfg.OUTPUT_FILE, 'r', encoding='utf-8') as f:
+                self.current_output = f.read()
+                logger.info(f"Loaded existing translation ({len(self.current_output)} bytes)")
+        except FileNotFoundError:
+            self.current_output = ""
+            with open(cfg.OUTPUT_FILE, 'w', encoding='utf-8') as f:
+                if cfg.OUTPUT_FORMAT == "markdown":
+                    f.write("# Tibetan Text Translation\n\n")
+                    self.current_output = "# Tibetan Text Translation\n\n"
 
     def write_chunk(self, tibetan_text: str, translation: str) -> None:
-        """Write translation to the output file with appropriate formatting"""
-        if cfg.OUTPUT_FORMAT == "markdown":
-            formatted_text = f"{translation}\n\n"
-            if not self.current_output:
-                self.current_output = "# Tibetan Text Translation\n\n"
-        else:  # txt format
-            formatted_text = f"{translation}\n\n"
-            
+        """Append translation to the output file"""
+        formatted_text = f"{translation}\n\n"
         self.current_output += formatted_text
         
         # Get byte count of the new chunk
         chunk_bytes = len(formatted_text.encode('utf-8'))
         total_bytes = len(self.current_output.encode('utf-8'))
         
-        with open(cfg.OUTPUT_FILE, 'w', encoding='utf-8') as f:
-            f.write(self.current_output)
+        with open(cfg.OUTPUT_FILE, 'a', encoding='utf-8') as f:
+            f.write(formatted_text)
             
-        logger.info(f"Wrote chunk: {chunk_bytes} bytes (Total: {total_bytes} bytes)")
+        logger.info(f"Appended chunk: {chunk_bytes} bytes (Total: {total_bytes} bytes)")
 
     @staticmethod
     def chunk_text(content: str) -> List[str]:

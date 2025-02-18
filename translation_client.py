@@ -136,18 +136,19 @@ class TranslationClient:
         {context}
                      
         Guidelines:        
-        - Translate only complete English sentences. 
         - When you encounter an incomplete sentence at the end of the chunk:
-          1. Stop at the last complete sentence
+          1. Stop at the last complete sentence and do NOT translate anything after that
           2. Add "UNTRANSLATED:" followed by the remaining untranslated Tibetan text
-        - Do NOT give any commentary or any notes. Give ONLY the translation and any untranslated Tibeten text
+        - Once you have added the UNTRANSLATED, be sure to EXCLUDE the equivalent English translation from the response. Anything Tibetan that is UNTRANSLATED must NOT have an English translation
+        - Do NOT give any commentary or any notes. Give ONLY the translation and any untranslated Tibeten text. Do not say e.g. 'Here is a faithful English translation' or 'Here is my translation'
         - The untranslated text will be prepended to the next chunk
         - Never attempt to complete partial sentences - they must be translated as a whole
-        - If you receive text starting with an incomplete sentence (from previous chunk), translate it as part of the first complete sentence
+        - If you receive Tibetan text starting with an incomplete sentence (from previous chunk), translate it as part of the first complete sentence
         - Use Sanskrit terms where appropriate
-        - Include original Tibetan terms in brackets if technical or unclear
+        - If the translation says there are a number of parts or sections, just list them if possible e.g.  instead of 'This has two parts:', just list the parts as a numbered list
+        - Include original Tibetan terms in brackets if technical or unclear, or if you are not sure how to translate them
         - Use enumerations where applicable (e.g., "Second..." becomes "2.")
-        - For subparts, use format: 1.1, 1.2, etc.
+        - For subparts, use format: 1.1, 1.2, etc. 
         
         Translate the following text:
         {text}
