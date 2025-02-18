@@ -1,6 +1,7 @@
 import os
 import argparse
 import logging
+import traceback
 from anthropic import Anthropic
 from dotenv import load_dotenv
 from config import TranslationConfig as cfg
@@ -44,6 +45,7 @@ def main() -> int:
         return 1
     except Exception as e:
         logger.error(f"Fatal error during translation: {str(e)}")
+        logger.error(f"Stack trace:\n{traceback.format_exc()}")
         return 1
 
 if __name__ == "__main__":

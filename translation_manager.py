@@ -23,6 +23,12 @@ class TranslationManager:
         self.file_handler.save_progress()
         exit(0)
 
+    def _extract_translation_text(self, translation_result) -> str:
+        """Extract text from translation result, handling both string and tuple returns."""
+        if isinstance(translation_result, tuple):
+            return translation_result[0]
+        return translation_result
+
     def translate_file(self, input_file: str = cfg.INPUT_FILE) -> None:
         """Main translation process"""
         content = self.file_handler.read_input_file(input_file)
@@ -42,23 +48,27 @@ class TranslationManager:
                 # Get effective summary by combining current summary with unsummarized translations
                 effective_summary = self.current_summary
                 if self.unsummarized_translations:
-                    effective_summary += "\n" + " ".join(self.unsummarized_translations)
+                    # Extract text from all stored translations
+                    translation_texts = [self._extract_translation_text(t) for t in self.unsummarized_translations]
+                    effective_summary += "\n" + " ".join(translation_texts)
 
                 translation = self.translator.translate_chunk(
                     part, previous_translation, effective_summary
                 )
-                logger.info(f"Successfully translated chunk {i+1}/{len(parts)}")
-                previous_translation = translation
+                
+                translation_text = self._extract_translation_text(translation)
+                previous_translation = translation_text
                 self.unsummarized_translations.append(translation)
                 
                 if len(self.unsummarized_translations) >= 5:
-                    logger.info(f"Generating new summary at checkpoint {i}/{len(parts)}")
-                    combined_text = self.current_summary + "\n" + " ".join(self.unsummarized_translations)
+                    # Extract text from all translations before summary generation
+                    translation_texts = [self._extract_translation_text(t) for t in self.unsummarized_translations]
+                    combined_text = self.current_summary + "\n" + " ".join(translation_texts)
                     self.current_summary = self.translator.generate_summary(combined_text)
                     self.unsummarized_translations = []
                     logger.info("Summary generation completed")
 
-                self.file_handler.write_chunk(part, translation)
+                self.file_handler.write_chunk(part, translation_text)
                 self.file_handler.progress[str(i)] = True
                 self.file_handler.save_progress()
                 

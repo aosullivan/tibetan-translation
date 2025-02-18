@@ -71,25 +71,52 @@ class FileHandler:
 
     @staticmethod
     def chunk_text(content: str) -> List[str]:
-        """Split content into chunks of appropriate size"""
+        """
+        Split content into chunks of appropriate size, respecting Tibetan word boundaries.
+        Primary split on Tibetan sentence marker '།'
+        Secondary split on space character
+        Never splits within a word
+        """
         if not content:
             raise ValueError("Empty content provided")
 
         parts = []
         start = 0
+        
         while start < len(content):
             end = start + cfg.CHUNK_SIZE
             
-            if end < len(content):
-                window_start = max(start + cfg.CHUNK_SIZE - 100, start)
-                window_end = min(start + cfg.CHUNK_SIZE + 100, len(content))
-                for marker in ['།', '॥', '.', '\n']:
-                    last_marker = content.rfind(marker, window_start, window_end)
-                    if last_marker != -1:
-                        end = last_marker + 1
-                        break
+            if end >= len(content):
+                # If we're at the end, just take the rest
+                chunk = content[start:].strip()
+                if chunk:
+                    parts.append(chunk)
+                break
+                
+            # Look for sentence marker within window
+            window_start = max(start + cfg.CHUNK_SIZE - 100, start)
+            window_end = min(start + cfg.CHUNK_SIZE + 100, len(content))
+            last_marker = content.rfind('།', window_start, window_end)
+            
+            if last_marker != -1 and last_marker > start:
+                # Found a sentence marker, split there
+                end = last_marker + 1
             else:
-                end = len(content)
+                # No sentence marker found, try splitting on space
+                last_space = content.rfind(' ', window_start, window_end)
+                if last_space != -1 and last_space > start:
+                    end = last_space
+                else:
+                    # If no suitable split point found, extend until we find one
+                    next_space = content.find(' ', end)
+                    next_marker = content.find('།', end)
+                    if next_space != -1 and (next_marker == -1 or next_space < next_marker):
+                        end = next_space
+                    elif next_marker != -1:
+                        end = next_marker + 1
+                    else:
+                        # If no split point found, take the rest of the text
+                        end = len(content)
             
             chunk = content[start:end].strip()
             if chunk:

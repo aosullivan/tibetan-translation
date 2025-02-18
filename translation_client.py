@@ -36,7 +36,7 @@ class TranslationClient:
             The untranslated_fragment will be prepended to the next chunk
         """
         # Prepend any untranslated fragment from previous chunk
-        full_text = self.untranslated_fragment + text
+        full_text = (self.untranslated_fragment + " " + text).strip()
         self.untranslated_fragment = ""
         
         max_retries = 5
@@ -60,7 +60,12 @@ class TranslationClient:
                 
                 # Parse response to get translation and any untranslated fragment
                 response = ''.join(block.text for block in message.content)
+                logger.info(f"Received translation response (length: {len(response)})")
+                logger.info(f"Raw response: {response}")
+                
                 translation, untranslated = self._parse_translation_response(response)
+                if untranslated:
+                    logger.info(f"Found untranslated fragment (length: {len(untranslated)})")
                 self.untranslated_fragment = untranslated
                 return translation, untranslated
 
@@ -74,17 +79,23 @@ class TranslationClient:
         """
         Parse the response to extract translation and untranslated fragment.
         
-        The response may contain an "UNTRANSLATED:" marker followed by Tibetan text
-        that represents an incomplete sentence at the end of the chunk. This text
-        will be carried forward to the next chunk for translation.
+        The response should contain an "UNTRANSLATED:" marker followed by Tibetan text
+        that represents an incomplete sentence at the end of the chunk.
         
         Returns:
             tuple[str, str]: (translated_text, untranslated_fragment)
         """
-        if "UNTRANSLATED:" in response:
-            parts = response.split("UNTRANSLATED:", 1)
-            return parts[0].strip(), parts[1].strip()
-        return response.strip(), ""
+        if "UNTRANSLATED:" not in response:
+            # If no marker is found, assume the last sentence might be incomplete
+            sentences = response.split("། ")  # Split on Tibetan sentence boundary marker
+            if len(sentences) > 1:
+                complete = "། ".join(sentences[:-1]) + "། "
+                incomplete = sentences[-1]
+                return complete, incomplete
+            return response.strip(), ""
+            
+        parts = response.split("UNTRANSLATED:", 1)
+        return parts[0].strip(), parts[1].strip()
 
     def generate_summary(self, text: str) -> str:
         """Generate summary with error handling"""
@@ -102,6 +113,20 @@ class TranslationClient:
             return ""
 
     @staticmethod
+    def _build_summary_prompt(text: str) -> str:
+        return f"""
+        Summarize the following Tibetan text in English. Focus on:
+        - Main topics and themes
+        - Key arguments or points
+        - Important names or terms
+        
+        Keep the summary concise (2-3 sentences).
+        
+        Text to summarize:
+        {text}
+        """
+
+    @staticmethod
     def _build_translation_prompt(context: str, text: str) -> str:
         return f"""
         You are an AI agent for translating classical Tibetan texts into English. 
@@ -110,33 +135,21 @@ class TranslationClient:
 
         {context}
                      
-        Guidelines:
-        - Translate as much complete content as possible
-        - If the chunk ends mid-sentence, DO NOT complete the partial sentence
-        - Instead, if you encounter an incomplete sentence at the end, add "UNTRANSLATED:" followed by the untranslated Tibetan text
-        - This untranslated text will be prepended to the next chunk for proper translation
-        - If a chunk starts with what appears to be the continuation of a previous sentence, translate it as-is
-        - Maintain consistency in terminology with previous translations
-        - Use Sanskrit terms if that is appropriate according to the norms of Tibetan translations into English
-        - Include original Tibetan terms in brackets if the term is particularly technical or obscure
-        - Use enumerations where applicable (e.g., "Second, blah blah" becomes "2. Blah blah")
-        - If the text says something like 'There are two parts', list them as '1.' and '2.'
-        - If an enumerated part has subparts, enumerate them as 1.1, 1.2, etc.
-        - Do not put a dot after subenumerations (use 1.1.2 not 1.1.2.)
-        - Create numbered lists for enumerated items only
-        - Give ONLY the translated words and any untranslated fragment
+        Guidelines:        
+        - Translate only complete English sentences. 
+        - When you encounter an incomplete sentence at the end of the chunk:
+          1. Stop at the last complete sentence
+          2. Add "UNTRANSLATED:" followed by the remaining untranslated Tibetan text
+        - Do NOT give any commentary or any notes. Give ONLY the translation and any untranslated Tibeten text
+        - The untranslated text will be prepended to the next chunk
+        - Never attempt to complete partial sentences - they must be translated as a whole
+        - If you receive text starting with an incomplete sentence (from previous chunk), translate it as part of the first complete sentence
+        - Use Sanskrit terms where appropriate
+        - Include original Tibetan terms in brackets if technical or unclear
+        - Use enumerations where applicable (e.g., "Second..." becomes "2.")
+        - For subparts, use format: 1.1, 1.2, etc.
         
         Translate the following text:
-        {text}
-        """
-
-    @staticmethod
-    def _build_summary_prompt(text: str) -> str:
-        return f"""
-        Provide a brief summary of the key points and context from this translated text. 
-        Focus on main themes, key terms, and any ongoing topics that would be important 
-        for maintaining consistency in subsequent translations:
-
         {text}
         """
 
