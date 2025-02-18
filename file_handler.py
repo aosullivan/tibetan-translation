@@ -52,7 +52,7 @@ class FileHandler:
     def write_chunk(self, tibetan_text: str, translation: str) -> None:
         """Write translation to the output file with appropriate formatting"""
         if cfg.OUTPUT_FORMAT == "markdown":
-            formatted_text = f"{translation}\n\n---\n\n"
+            formatted_text = f"{translation}\n\n"
             if not self.current_output:
                 self.current_output = "# Tibetan Text Translation\n\n"
         else:  # txt format
