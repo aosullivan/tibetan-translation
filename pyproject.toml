@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tibetan-translation"
+version = "0.1.0"
+description = "Tibetan text translation tool"
+requires-python = ">=3.9"
+dependencies = [
+    "anthropic",
+    "pytest",
+]
+
+[tool.pytest.ini_options]
+pythonpath = "."
+testpaths = ["tests"]
+addopts = "-v"
+
+[tool.hatch.build]
+packages = ["tibetan_translation"]

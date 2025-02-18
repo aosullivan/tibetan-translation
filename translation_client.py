@@ -8,10 +8,37 @@ logger = logging.getLogger(__name__)
 
 class TranslationClient:
     def __init__(self, client: Anthropic):
+        """
+        Initialize translation client.
+        
+        Attributes:
+            untranslated_fragment: Stores any incomplete sentence from previous chunk
+        """
         self.client = client
+        self.untranslated_fragment = ""
 
-    def translate_chunk(self, text: str, prev_translation: str = "", summary: str = "") -> str:
-        """Translate a single chunk with retries and error handling"""
+    def translate_chunk(self, text: str, prev_translation: str = "", summary: str = "") -> tuple[str, str]:
+        """
+        Translate a single chunk with retries and error handling.
+        
+        This method handles sentences that are split across chunks by:
+        1. Prepending any untranslated fragment from the previous chunk
+        2. Identifying incomplete sentences at the end of current chunk
+        3. Storing incomplete sentences to be prepended to the next chunk
+        
+        Args:
+            text: Text to translate
+            prev_translation: Translation of previous chunk for context
+            summary: Summary of previous content for context
+            
+        Returns:
+            tuple[str, str]: (translated_text, untranslated_fragment)
+            The untranslated_fragment will be prepended to the next chunk
+        """
+        # Prepend any untranslated fragment from previous chunk
+        full_text = self.untranslated_fragment + text
+        self.untranslated_fragment = ""
+        
         max_retries = 5
         initial_delay = 1
 
@@ -24,25 +51,46 @@ class TranslationClient:
                     context_prompt += f"Previous chunk's translation: {prev_translation}\n\n"
 
                 message = self.client.messages.create(
-                    model="claude-3-5-sonnet-latest",
+                    model=cfg.MODEL,
                     max_tokens=1000,
                     messages=[
-                        {"role": "user", "content": self._build_translation_prompt(context_prompt, text)}
+                        {"role": "user", "content": self._build_translation_prompt(context_prompt, full_text)}
                     ]
                 )
                 
-                return ''.join(block.text for block in message.content)
+                # Parse response to get translation and any untranslated fragment
+                response = ''.join(block.text for block in message.content)
+                translation, untranslated = self._parse_translation_response(response)
+                self.untranslated_fragment = untranslated
+                return translation, untranslated
 
             except RateLimitError as e:
                 self._handle_rate_limit(e, attempt, max_retries, initial_delay)
             except APIError as e:
                 self._handle_api_error(e, attempt, max_retries, initial_delay)
 
+    @staticmethod
+    def _parse_translation_response(response: str) -> tuple[str, str]:
+        """
+        Parse the response to extract translation and untranslated fragment.
+        
+        The response may contain an "UNTRANSLATED:" marker followed by Tibetan text
+        that represents an incomplete sentence at the end of the chunk. This text
+        will be carried forward to the next chunk for translation.
+        
+        Returns:
+            tuple[str, str]: (translated_text, untranslated_fragment)
+        """
+        if "UNTRANSLATED:" in response:
+            parts = response.split("UNTRANSLATED:", 1)
+            return parts[0].strip(), parts[1].strip()
+        return response.strip(), ""
+
     def generate_summary(self, text: str) -> str:
         """Generate summary with error handling"""
         try:
             message = self.client.messages.create(
-                model="claude-3-5-sonnet-latest",
+                model=cfg.MODEL,
                 max_tokens=500,
                 messages=[
                     {"role": "user", "content": self._build_summary_prompt(text)}
@@ -61,19 +109,22 @@ class TranslationClient:
         while maintaining consistency with the previous translations.
 
         {context}
-        
                      
         Guidelines:
+        - Translate as much complete content as possible
+        - If the chunk ends mid-sentence, DO NOT complete the partial sentence
+        - Instead, if you encounter an incomplete sentence at the end, add "UNTRANSLATED:" followed by the untranslated Tibetan text
+        - This untranslated text will be prepended to the next chunk for proper translation
+        - If a chunk starts with what appears to be the continuation of a previous sentence, translate it as-is
         - Maintain consistency in terminology with previous translations
-        - Ensure smooth transitions between chunks
         - Use Sanskrit terms if that is appropriate according to the norms of Tibetan translations into English
-        - Include original Tibetan terms in brackets if the term is particularly technical or obscure, or the translation needs clarification
+        - Include original Tibetan terms in brackets if the term is particularly technical or obscure
         - Use enumerations where applicable (e.g., "Second, blah blah" becomes "2. Blah blah")
-        - If the text says something like 'There are two parts', list them as '1.' and '2.' Remember these enumerations and use them as headings of they are explained in more detail later
-        - If an enumerated part has subparts or subsections, enumerate them as 1.1, 1.2, etc. and likewise if there are further sub-enumerations then use 1.1.1, 1.1.2 and so forth 
-        - Do not put a dot after subenumerations, e.g. 1.1.2 not 1.1.2. and 1.2 not 1.2. and so forth
-        - Create numbered lists for any enumerated items, but otherwise do not use lists
-        - Do not say 'Here is the translation' or add any of your own comments or words. Give me ONLY the translated words.
+        - If the text says something like 'There are two parts', list them as '1.' and '2.'
+        - If an enumerated part has subparts, enumerate them as 1.1, 1.2, etc.
+        - Do not put a dot after subenumerations (use 1.1.2 not 1.1.2.)
+        - Create numbered lists for enumerated items only
+        - Give ONLY the translated words and any untranslated fragment
         
         Translate the following text:
         {text}
