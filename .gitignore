@@ -5,5 +5,7 @@ translation.txt
 output.txt
 progress.json
 translation.log
+translation*.md
 myenv/
 __pycache__/
+tibetan-texts/

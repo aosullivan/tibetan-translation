@@ -76,7 +76,6 @@ class TranslationClient:
         - Do not say 'Here is the translation' or add any of your own comments or words. Give me ONLY the translated words.
         
         Translate the following text:
-
         {text}
         """
 

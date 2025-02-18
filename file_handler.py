@@ -50,11 +50,24 @@ class FileHandler:
             f.write('')
 
     def write_chunk(self, tibetan_text: str, translation: str) -> None:
-        """Write only the translation to the output file"""
-        self.current_output += f"{translation}\n\n"
+        """Write translation to the output file with appropriate formatting"""
+        if cfg.OUTPUT_FORMAT == "markdown":
+            formatted_text = f"{translation}\n\n---\n\n"
+            if not self.current_output:
+                self.current_output = "# Tibetan Text Translation\n\n"
+        else:  # txt format
+            formatted_text = f"{translation}\n\n"
+            
+        self.current_output += formatted_text
+        
+        # Get byte count of the new chunk
+        chunk_bytes = len(formatted_text.encode('utf-8'))
+        total_bytes = len(self.current_output.encode('utf-8'))
         
         with open(cfg.OUTPUT_FILE, 'w', encoding='utf-8') as f:
             f.write(self.current_output)
+            
+        logger.info(f"Wrote chunk: {chunk_bytes} bytes (Total: {total_bytes} bytes)")
 
     @staticmethod
     def chunk_text(content: str) -> List[str]:

@@ -1,5 +1,6 @@
 import logging
 import signal
+from collections import deque
 from config import TranslationConfig as cfg
 from translation_client import TranslationClient
 from file_handler import FileHandler
@@ -12,6 +13,9 @@ class TranslationManager:
         self.file_handler = file_handler
         signal.signal(signal.SIGINT, self._handle_interrupt)
         signal.signal(signal.SIGTERM, self._handle_interrupt)
+        self.recent_translations = deque(maxlen=10)
+        self.unsummarized_translations = []
+        self.current_summary = ""
 
     def _handle_interrupt(self, signum, frame) -> None:
         """Handle script interruption gracefully"""
@@ -27,22 +31,32 @@ class TranslationManager:
         self.file_handler.initialize_output_file()
         
         previous_translation = ""
-        translation_summary = ""
 
         for i, part in enumerate(parts):
             if str(i) in self.file_handler.progress and self.file_handler.progress[str(i)]:
                 logger.info(f"Skipping already translated chunk {i+1}/{len(parts)}")
                 continue
 
-            logger.info(f"Processing chunk {i+1}/{len(parts)}")
+            logger.info(f"Starting translation for chunk {i+1}/{len(parts)}")
             try:
+                # Get effective summary by combining current summary with unsummarized translations
+                effective_summary = self.current_summary
+                if self.unsummarized_translations:
+                    effective_summary += "\n" + " ".join(self.unsummarized_translations)
+
                 translation = self.translator.translate_chunk(
-                    part, previous_translation, translation_summary
+                    part, previous_translation, effective_summary
                 )
+                logger.info(f"Successfully translated chunk {i+1}/{len(parts)}")
                 previous_translation = translation
+                self.unsummarized_translations.append(translation)
                 
-                if i % cfg.SUMMARY_INTERVAL == 0:
-                    translation_summary = self.translator.generate_summary(previous_translation)
+                if len(self.unsummarized_translations) >= 5:
+                    logger.info(f"Generating new summary at checkpoint {i}/{len(parts)}")
+                    combined_text = self.current_summary + "\n" + " ".join(self.unsummarized_translations)
+                    self.current_summary = self.translator.generate_summary(combined_text)
+                    self.unsummarized_translations = []
+                    logger.info("Summary generation completed")
 
                 self.file_handler.write_chunk(part, translation)
                 self.file_handler.progress[str(i)] = True
