@@ -9,7 +9,7 @@ class TranslationConfig:
     PROGRESS_FILE: str = "progress.json"
 
     # Translation settings
-    CHUNK_SIZE: int = 1000
+    CHUNK_SIZE: int = 1500
     SUMMARY_INTERVAL: int = 5
     MAX_RETRIES: int = 3
     INITIAL_DELAY: int = 1

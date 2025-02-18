@@ -75,7 +75,7 @@ class FileHandler:
     def chunk_text(content: str) -> List[str]:
         """
         Split content into chunks of appropriate size, respecting Tibetan word boundaries.
-        Primary split on Tibetan sentence marker '།'
+        Primary split on Tibetan sentence marker '/'
         Secondary split on space character
         Never splits within a word
         """
@@ -98,7 +98,7 @@ class FileHandler:
             # Look for sentence marker within window
             window_start = max(start + cfg.CHUNK_SIZE - 100, start)
             window_end = min(start + cfg.CHUNK_SIZE + 100, len(content))
-            last_marker = content.rfind('།', window_start, window_end)
+            last_marker = content.rfind('/', window_start, window_end)
             
             if last_marker != -1 and last_marker > start:
                 # Found a sentence marker, split there
