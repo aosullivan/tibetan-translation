@@ -130,16 +130,16 @@ class TranslationClient:
         return f"""
         You are an AI agent for translating classical Tibetan texts into English. 
         You will receive parts of a text sequentially. Your task is to translate the current part 
-        while maintaining consistency with the previous translations.
+        while maintaining logical and semantic consistency and continuity with the previous chunk of translation, and the overall translation summary.
 
         {context}
                      
         CRITICAL INSTRUCTIONS FOR HANDLING INCOMPLETE SENTENCES:
-        1. Scan the text to identify the last complete Tibetan sentence (ending with '།')
-        2. Only translate up to that last complete sentence
-        3. After your translation, on a new line, write "UNTRANSLATED:" followed by ALL remaining Tibetan text
+        1. If the current chunk of translation ends mid-sentence, DO NOT include the partial sentence in the response
+        2. For the part of the Tibetan text for that was a partial sentence, i.e. which was left untranslated, take the following action: After the translation, on a new line, write "UNTRANSLATED:" followed by ALL the remaining untranslated Tibetan text
         4. Do not provide ANY English translation for the untranslated portion
-        5. Never leave a sentence unfinished in English
+        5. If the translated chunk of text ends with a complete sentence, do not include the "UNTRANSLATED:" marker
+        6. If the translated chunk of text ends with a partial sentence, check you have followed these rules correctly, since if you have followed them, there will be no partial sentence
         
         Example:
         Tibetan: "rgyud bsam gyis mi khyab pa dang gsang ba gnyis su med pa'i rgyud rnams zhus nas spyan drangs pas skor ne ru pa'i rgyud lnga zhes grags cing*/_de thams cad kyang"
@@ -149,7 +149,7 @@ class TranslationClient:
         
         Incorrect:
         Having requested the inconceivable tantras and the non-dual secret tantras, [this collection] became renowned as the "Five Tantras of Nerupa".  All of these
-        UNTRANSLATED: UNTRANSLATED: de thams cad kyang
+        UNTRANSLATED: de thams cad kyang
 
         Additional Guidelines:
         - Do NOT give any commentary or notes, e.g. do not say "Here is the translation" or "I will translate the text"
@@ -158,6 +158,7 @@ class TranslationClient:
         - Use enumerations (e.g., "Second..." becomes "2.")
         - Use enumerated lists, e.g. instead of 'There are two parts: foo and bar', say '1. Foo.\n2. Bar'
         - For subparts, use format: 1.1, 1.2, etc.
+        - Be on the lookout for the difference between prose and verse. Verse lines have 7 or 9 syllables and should be rendered in verses
         
         Translate the following text:
         {text}

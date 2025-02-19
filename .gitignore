@@ -9,3 +9,5 @@ translation*.md
 myenv/
 __pycache__/
 tibetan-texts/
+tibetan_translation/
+tibetan_translation/lamdre-translation.md
