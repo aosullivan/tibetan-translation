@@ -32,6 +32,7 @@ def main() -> int:
         return 1
 
     try:
+        
         client = Anthropic(api_key=api_key)
         translation_client = TranslationClient(client)
         file_handler = FileHandler()

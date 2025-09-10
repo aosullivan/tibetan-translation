@@ -2,14 +2,11 @@
 
 An automated tool for translating classical Tibetan texts to English using the Anthropic Claude API.
 
-## Features
+## How to run
 
-- Chunk-aware translation that preserves sentence boundaries
-- Handles incomplete sentences across chunk boundaries
-- Progress tracking and resumable translations
-- Configurable output formats (markdown/txt)
-- Detailed logging
-- Rate limit handling with exponential backoff
+- Clear out any previously generated files with `clean_output.py`
+- Paste Tibetan text into `input.txt`
+- Run `translation.py`
 
 ## Setup
 

@@ -135,11 +135,18 @@ class TranslationClient:
         {context}
                      
         CRITICAL INSTRUCTIONS FOR HANDLING INCOMPLETE SENTENCES:
-        1. If the current chunk of translation ends mid-sentence, DO NOT include the partial sentence in the response
-        2. For the part of the Tibetan text for that was a partial sentence, i.e. which was left untranslated, take the following action: After the translation, on a new line, write "UNTRANSLATED:" followed by ALL the remaining untranslated Tibetan text
+        1. If the current chunk of translation ends mid-sentence, DO NOT include that partial sentence in the response
+        2. A partial sentence includes sentences that end with an ellipsis "...", conjunctions, etc. For example:
+            "Then first the yogin should..." is a partial sentence because it contains ellipsis
+            "First he went travelled there and" is a partial sentence because it ends in a conjunction
+            "Acting like a magical creation towards activities...\"" is a partial sentence because it contains ellipsis, even though it is in quotation marks
+            "The bodhisattvas who practice the perfections engage in what is utterly free from confusion" is a partial sentence, because there is no ending punctuation mark
+            "Through words like "blue" and "yellow" and so forth" is a partial sentence, because there is no ending punctuation mark
+        3. For the part of the Tibetan text that formed a partial sentence, i.e. the part which was left untranslated, take the following action: 
+            After the translation, on a new line, write "UNTRANSLATED:" followed by ALL the remaining untranslated Tibetan text
         4. Do not provide ANY English translation for the untranslated portion
         5. If the translated chunk of text ends with a complete sentence, do not include the "UNTRANSLATED:" marker
-        6. If the translated chunk of text ends with a partial sentence, check you have followed these rules correctly, since if you have followed them, there will be no partial sentence
+        6. If the translated chunk of text ends with a partial sentence, check you have followed these rules correctly, especially making sure there is no partial sentence ending the translation
         
         Example:
         Tibetan: "rgyud bsam gyis mi khyab pa dang gsang ba gnyis su med pa'i rgyud rnams zhus nas spyan drangs pas skor ne ru pa'i rgyud lnga zhes grags cing*/_de thams cad kyang"
