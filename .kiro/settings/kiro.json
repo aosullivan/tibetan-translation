@@ -1,0 +1,8 @@
+{
+  "trustedCommands": [
+    "python test_*.py",
+    "python -m pytest tests/**",
+    "python src/*.py",
+    "git *"
+  ]
+}

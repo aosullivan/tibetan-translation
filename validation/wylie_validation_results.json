@@ -1,0 +1,305 @@
+{
+  "summary": {
+    "total_tests": 28,
+    "passed_tests": 25,
+    "failed_tests": 3,
+    "average_confidence": 0.9196428571428571,
+    "accuracy_percentage": 89.28571428571429,
+    "category_results": {
+      "basic_consonants": {
+        "total": 4,
+        "passed": 4,
+        "failed": 0
+      },
+      "vowels": {
+        "total": 4,
+        "passed": 4,
+        "failed": 0
+      },
+      "common_words": {
+        "total": 5,
+        "passed": 5,
+        "failed": 0
+      },
+      "consonant_clusters": {
+        "total": 4,
+        "passed": 4,
+        "failed": 0
+      },
+      "phrases": {
+        "total": 3,
+        "passed": 3,
+        "failed": 0
+      },
+      "sanskrit": {
+        "total": 3,
+        "passed": 2,
+        "failed": 1
+      },
+      "numbers": {
+        "total": 3,
+        "passed": 3,
+        "failed": 0
+      },
+      "punctuation": {
+        "total": 2,
+        "passed": 0,
+        "failed": 2
+      }
+    }
+  },
+  "detailed_results": [
+    {
+      "test_name": "wylie_basic_consonants_1",
+      "input_text": "ka",
+      "expected_output": "ཀ",
+      "actual_output": "ཀ",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: basic_consonants"
+    },
+    {
+      "test_name": "wylie_basic_consonants_2",
+      "input_text": "kha",
+      "expected_output": "ཁ",
+      "actual_output": "ཁ",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: basic_consonants"
+    },
+    {
+      "test_name": "wylie_basic_consonants_3",
+      "input_text": "ga",
+      "expected_output": "ག",
+      "actual_output": "ག",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: basic_consonants"
+    },
+    {
+      "test_name": "wylie_basic_consonants_4",
+      "input_text": "nga",
+      "expected_output": "ང",
+      "actual_output": "ང",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: basic_consonants"
+    },
+    {
+      "test_name": "wylie_vowels_5",
+      "input_text": "ki",
+      "expected_output": "ཀི",
+      "actual_output": "ཀི",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: vowels"
+    },
+    {
+      "test_name": "wylie_vowels_6",
+      "input_text": "ku",
+      "expected_output": "ཀུ",
+      "actual_output": "ཀུ",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: vowels"
+    },
+    {
+      "test_name": "wylie_vowels_7",
+      "input_text": "ke",
+      "expected_output": "ཀེ",
+      "actual_output": "ཀེ",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: vowels"
+    },
+    {
+      "test_name": "wylie_vowels_8",
+      "input_text": "ko",
+      "expected_output": "ཀོ",
+      "actual_output": "ཀོ",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: vowels"
+    },
+    {
+      "test_name": "wylie_common_words_9",
+      "input_text": "lha",
+      "expected_output": "ལྷ",
+      "actual_output": "ལྷ",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: common_words"
+    },
+    {
+      "test_name": "wylie_common_words_10",
+      "input_text": "mo",
+      "expected_output": "མོ",
+      "actual_output": "མོ",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: common_words"
+    },
+    {
+      "test_name": "wylie_common_words_11",
+      "input_text": "dbyangs",
+      "expected_output": "དབྱངས",
+      "actual_output": "དབྱངས",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: common_words"
+    },
+    {
+      "test_name": "wylie_common_words_12",
+      "input_text": "can",
+      "expected_output": "ཅན",
+      "actual_output": "ཅན",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: common_words"
+    },
+    {
+      "test_name": "wylie_common_words_13",
+      "input_text": "ma",
+      "expected_output": "མ",
+      "actual_output": "མ",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: common_words"
+    },
+    {
+      "test_name": "wylie_consonant_clusters_14",
+      "input_text": "phyag",
+      "expected_output": "ཕྱག",
+      "actual_output": "ཕྱག",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: consonant_clusters"
+    },
+    {
+      "test_name": "wylie_consonant_clusters_15",
+      "input_text": "'tshal",
+      "expected_output": "འཚལ",
+      "actual_output": "འཚལ",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: consonant_clusters"
+    },
+    {
+      "test_name": "wylie_consonant_clusters_16",
+      "input_text": "brgya",
+      "expected_output": "བརྒྱ",
+      "actual_output": "བརྒྱ",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: consonant_clusters"
+    },
+    {
+      "test_name": "wylie_consonant_clusters_17",
+      "input_text": "sgrub",
+      "expected_output": "སྒྲུབ",
+      "actual_output": "སྒྲུབ",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: consonant_clusters"
+    },
+    {
+      "test_name": "wylie_phrases_18",
+      "input_text": "lha mo",
+      "expected_output": "ལྷ་མོ",
+      "actual_output": "ལྷ་མོ",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: phrases"
+    },
+    {
+      "test_name": "wylie_phrases_19",
+      "input_text": "dbyangs can ma",
+      "expected_output": "དབྱངས་ཅན་མ",
+      "actual_output": "དབྱངས་ཅན་མ",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: phrases"
+    },
+    {
+      "test_name": "wylie_phrases_20",
+      "input_text": "phyag 'tshal lo",
+      "expected_output": "ཕྱག་འཚལ་ལོ",
+      "actual_output": "ཕྱག་འཚལ་ལོ",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: phrases"
+    },
+    {
+      "test_name": "wylie_sanskrit_21",
+      "input_text": "oM",
+      "expected_output": "ཨོཾ",
+      "actual_output": "ཨོཾ",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: sanskrit"
+    },
+    {
+      "test_name": "wylie_sanskrit_22",
+      "input_text": "hU~M",
+      "expected_output": "ཧཱུྃ",
+      "actual_output": "ཧཱུཾ",
+      "is_correct": false,
+      "confidence_score": 0.75,
+      "notes": "Category: sanskrit"
+    },
+    {
+      "test_name": "wylie_sanskrit_23",
+      "input_text": "swA hA",
+      "expected_output": "སྭཱ་ཧཱ",
+      "actual_output": "སྭཱ་ཧཱ",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: sanskrit"
+    },
+    {
+      "test_name": "wylie_numbers_24",
+      "input_text": "gcig",
+      "expected_output": "གཅིག",
+      "actual_output": "གཅིག",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: numbers"
+    },
+    {
+      "test_name": "wylie_numbers_25",
+      "input_text": "gnyis",
+      "expected_output": "གཉིས",
+      "actual_output": "གཉིས",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: numbers"
+    },
+    {
+      "test_name": "wylie_numbers_26",
+      "input_text": "gsum",
+      "expected_output": "གསུམ",
+      "actual_output": "གསུམ",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: numbers"
+    },
+    {
+      "test_name": "wylie_punctuation_27",
+      "input_text": "shad",
+      "expected_output": "།",
+      "actual_output": "ཤད",
+      "is_correct": false,
+      "confidence_score": 0.0,
+      "notes": "Category: punctuation"
+    },
+    {
+      "test_name": "wylie_punctuation_28",
+      "input_text": "||",
+      "expected_output": "༎",
+      "actual_output": "༑༑",
+      "is_correct": false,
+      "confidence_score": 0.0,
+      "notes": "Category: punctuation"
+    }
+  ]
+}

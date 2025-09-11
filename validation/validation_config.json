@@ -1,0 +1,95 @@
+{
+  "validation_settings": {
+    "wylie_conversion": {
+      "enabled": true,
+      "minimum_accuracy": 0.85,
+      "test_categories": [
+        "basic_consonants",
+        "vowels",
+        "common_words",
+        "consonant_clusters",
+        "phrases",
+        "sanskrit",
+        "numbers",
+        "punctuation"
+      ],
+      "critical_test_cases": [
+        {"wylie": "lha mo dbyangs can ma", "tibetan": "ལྷ་མོ་དབྱངས་ཅན་མ"},
+        {"wylie": "phyag 'tshal lo", "tibetan": "ཕྱག་འཚལ་ལོ"},
+        {"wylie": "sgrub thabs", "tibetan": "སྒྲུབ་ཐབས"},
+        {"wylie": "byang chub sems dpa'", "tibetan": "བྱང་ཆུབ་སེམས་དཔའ"}
+      ]
+    },
+    "phonetic_rendering": {
+      "enabled": true,
+      "minimum_accuracy": 0.75,
+      "styles_to_test": ["simplified", "detailed", "academic"],
+      "test_categories": [
+        "basic_consonants",
+        "aspirated",
+        "common_words",
+        "consonant_clusters",
+        "phrases",
+        "sanskrit"
+      ],
+      "pronunciation_standards": {
+        "dialect": "central_tibetan",
+        "aspiration_marking": true,
+        "tone_marking": false
+      }
+    },
+    "translation_quality": {
+      "enabled": true,
+      "minimum_accuracy": 0.70,
+      "context": "vajrayana_buddhist",
+      "test_categories": [
+        "deities",
+        "ritual_actions",
+        "spiritual_beings",
+        "mantras",
+        "philosophy",
+        "practice_terms"
+      ],
+      "quality_criteria": {
+        "concept_coverage": 0.8,
+        "buddhist_context": true,
+        "mantra_preservation": true,
+        "cultural_sensitivity": true
+      }
+    }
+  },
+  "expert_review": {
+    "required_qualifications": [
+      "tibetan_language_proficiency",
+      "buddhist_studies_background",
+      "wylie_transliteration_experience"
+    ],
+    "review_sample_size": {
+      "minimum_lines": 50,
+      "recommended_lines": 100,
+      "categories_coverage": "all"
+    },
+    "scoring_weights": {
+      "wylie_conversion": 0.30,
+      "phonetic_rendering": 0.25,
+      "translation_quality": 0.45
+    }
+  },
+  "validation_schedule": {
+    "automated_tests": "daily",
+    "expert_review": "quarterly",
+    "full_validation": "annually"
+  },
+  "accuracy_thresholds": {
+    "excellent": 0.90,
+    "good": 0.75,
+    "acceptable": 0.60,
+    "needs_improvement": 0.60
+  },
+  "reporting": {
+    "generate_json": true,
+    "generate_markdown": true,
+    "include_failed_cases": true,
+    "include_recommendations": true
+  }
+}

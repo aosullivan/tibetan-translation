@@ -4,7 +4,7 @@ import logging
 import traceback
 import time  # Add this import
 from typing import Dict, List
-from config import TranslationConfig as cfg
+from .config import TranslationConfig as cfg
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 from pathlib import Path
-from config import TranslationConfig as cfg
+from .config import TranslationConfig as cfg
 
 def clean_output_files():
     """Remove translation output files and logs."""

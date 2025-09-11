@@ -4,10 +4,10 @@ import logging
 import traceback
 from anthropic import Anthropic
 from dotenv import load_dotenv
-from config import TranslationConfig as cfg
-from translation_client import TranslationClient
-from file_handler import FileHandler
-from translation_manager import TranslationManager
+from src.config import TranslationConfig as cfg
+from src.translation_client import TranslationClient
+from src.file_handler import FileHandler
+from src.translation_manager import TranslationManager
 
 logging.basicConfig(
     level=logging.INFO,

@@ -2,7 +2,7 @@ import logging
 import random
 import time
 from anthropic import Anthropic, APIError, RateLimitError
-from config import TranslationConfig as cfg
+from .config import TranslationConfig as cfg
 
 logger = logging.getLogger(__name__)
 

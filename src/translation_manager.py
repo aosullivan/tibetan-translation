@@ -1,19 +1,16 @@
 import logging
 import signal
 from collections import deque
-from typing import List
+from .config import TranslationConfig as cfg
 from .translation_client import TranslationClient
 from .file_handler import FileHandler
-from .config import cfg
 
 logger = logging.getLogger(__name__)
 
 class TranslationManager:
-    def __init__(self, translation_client: TranslationClient, file_handler: FileHandler):
-        self.translation_client = translation_client
+    def __init__(self, translator: TranslationClient, file_handler: FileHandler):
+        self.translator = translator
         self.file_handler = file_handler
-        self.previous_translation = ""
-        self.context_summary = ""
         signal.signal(signal.SIGINT, self._handle_interrupt)
         signal.signal(signal.SIGTERM, self._handle_interrupt)
         self.recent_translations = deque(maxlen=10)
@@ -26,34 +23,56 @@ class TranslationManager:
         self.file_handler.save_progress()
         exit(0)
 
-    def translate_file(self, input_file: str = cfg.INPUT_FILE) -> None:
-        """Translate entire file chunk by chunk"""
-        chunks = self.file_handler.read_chunks(input_file, cfg.CHUNK_SIZE)
-        translated_chunks: List[str] = []
+    def _extract_translation_text(self, translation_result) -> str:
+        """Extract text from translation result, handling both string and tuple returns."""
+        if isinstance(translation_result, tuple):
+            return translation_result[0]
+        return translation_result
 
-        for i, chunk in enumerate(chunks, 1):
-            logger.info(f"Processing chunk {i}")
+    def translate_file(self, input_file: str = cfg.INPUT_FILE) -> None:
+        """Main translation process"""
+        content = self.file_handler.read_input_file(input_file)
+        parts = self.file_handler.chunk_text(content)
+        
+        self.file_handler.initialize_output_file()
+        
+        previous_translation = ""
+
+        for i, part in enumerate(parts):
+            if str(i) in self.file_handler.progress and self.file_handler.progress[str(i)]:
+                logger.info(f"Skipping already translated chunk {i+1}/{len(parts)}")
+                continue
+
+            logger.info(f"Starting translation for chunk {i+1}/{len(parts)}")
             try:
-                # Get both translation and untranslated fragment
-                translation, untranslated = self.translation_client.translate_chunk(
-                    chunk,
-                    prev_translation=self.previous_translation,
-                    summary=self.context_summary
+                # Get effective summary by combining current summary with unsummarized translations
+                effective_summary = self.current_summary
+                if self.unsummarized_translations:
+                    # Extract text from all stored translations
+                    translation_texts = [self._extract_translation_text(t) for t in self.unsummarized_translations]
+                    effective_summary += "\n" + " ".join(translation_texts)
+
+                translation = self.translator.translate_chunk(
+                    part, previous_translation, effective_summary
                 )
                 
-                # Store only the translated part
-                translated_chunks.append(translation)
-                self.previous_translation = translation
+                translation_text = self._extract_translation_text(translation)
+                previous_translation = translation_text
+                self.unsummarized_translations.append(translation)
                 
-                # Update context summary periodically
-                if i % 5 == 0:  # Every 5 chunks
-                    recent_text = " ".join(translated_chunks[-5:])
-                    self.context_summary = self.translation_client.generate_summary(recent_text)
+                if len(self.unsummarized_translations) >= 5:
+                    # Extract text from all translations before summary generation
+                    translation_texts = [self._extract_translation_text(t) for t in self.unsummarized_translations]
+                    combined_text = self.current_summary + "\n" + " ".join(translation_texts)
+                    self.current_summary = self.translator.generate_summary(combined_text)
+                    self.unsummarized_translations = []
+                    logger.info("Summary generation completed")
 
+                self.file_handler.write_chunk(part, translation_text)
+                self.file_handler.progress[str(i)] = True
+                self.file_handler.save_progress()
+                
             except Exception as e:
-                logger.error(f"Error processing chunk {i}: {str(e)}")
+                logger.error(f"Error processing chunk {i+1}: {str(e)}")
+                self.file_handler.save_progress()
                 raise
-
-        # Write all translations to output file
-        final_translation = "\n".join(translated_chunks)
-        self.file_handler.write_translation(final_translation, cfg.OUTPUT_FILE)

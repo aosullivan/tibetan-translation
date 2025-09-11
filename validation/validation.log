@@ -1,0 +1,24 @@
+2025-09-10 19:28:27,267 - WARNING - Translation tests disabled: ANTHROPIC_API_KEY not found in environment
+2025-09-10 19:28:27,268 - INFO - === Running Wylie Conversion Validation Only ===
+2025-09-10 19:28:27,268 - INFO - Running 28 Wylie conversion tests...
+2025-09-10 19:28:27,268 - WARNING - ✗ hU~M → ཧཱུཾ (expected: ཧཱུྃ)
+2025-09-10 19:28:27,269 - WARNING - ✗ shad → ཤད (expected: །)
+2025-09-10 19:28:27,269 - WARNING - ✗ || → ༑༑ (expected: ༎)
+2025-09-10 19:28:27,269 - INFO - Detailed results saved to validation/wylie_validation_results.json
+2025-09-10 19:28:27,269 - INFO - Human-readable report saved to validation/wylie_validation_report.md
+2025-09-10 19:28:34,726 - WARNING - Translation tests disabled: ANTHROPIC_API_KEY not found in environment
+2025-09-10 19:28:34,726 - INFO - === Running Phonetic Rendering Validation Only ===
+2025-09-10 19:28:34,726 - INFO - Running 21 phonetic rendering tests...
+2025-09-10 19:28:34,727 - WARNING - ✗ dbyangs → dbyangs (expected: yang)
+2025-09-10 19:28:34,728 - WARNING - ✗ can → chan (expected: chen)
+2025-09-10 19:28:34,728 - WARNING - ✗ phyag → phya (expected: chak)
+2025-09-10 19:28:34,728 - WARNING - ✗ 'tshal → tshal' (expected: tsal)
+2025-09-10 19:28:34,728 - WARNING - ✗ brgya → brgya (expected: gya)
+2025-09-10 19:28:34,728 - WARNING - ✗ sgrub → sgrub (expected: drub)
+2025-09-10 19:28:34,728 - WARNING - ✗ dbyangs can ma → dbyangs chan ma (expected: yang chen ma)
+2025-09-10 19:28:34,728 - WARNING - ✗ phyag 'tshal lo → phyag tshal' lo (expected: chak tsal lo)
+2025-09-10 19:28:34,728 - WARNING - ✗ oM → OHM (expected: om)
+2025-09-10 19:28:34,728 - WARNING - ✗ hU~M → HOOM (expected: hung)
+2025-09-10 19:28:34,728 - WARNING - ✗ swA hA → swaa haa (expected: soha)
+2025-09-10 19:28:34,729 - INFO - Detailed results saved to validation/phonetic_validation_results.json
+2025-09-10 19:28:34,729 - INFO - Human-readable report saved to validation/phonetic_validation_report.md

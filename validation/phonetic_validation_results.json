@@ -1,0 +1,232 @@
+{
+  "summary": {
+    "total_tests": 21,
+    "passed_tests": 10,
+    "failed_tests": 11,
+    "average_confidence": 0.7555555555555554,
+    "accuracy_percentage": 47.61904761904761,
+    "category_results": {
+      "basic_consonants": {
+        "total": 4,
+        "passed": 4,
+        "failed": 0
+      },
+      "aspirated": {
+        "total": 3,
+        "passed": 3,
+        "failed": 0
+      },
+      "common_words": {
+        "total": 4,
+        "passed": 2,
+        "failed": 2
+      },
+      "consonant_clusters": {
+        "total": 4,
+        "passed": 0,
+        "failed": 4
+      },
+      "phrases": {
+        "total": 3,
+        "passed": 1,
+        "failed": 2
+      },
+      "sanskrit": {
+        "total": 3,
+        "passed": 0,
+        "failed": 3
+      }
+    }
+  },
+  "detailed_results": [
+    {
+      "test_name": "phonetic_basic_consonants_1",
+      "input_text": "ka",
+      "expected_output": "ka",
+      "actual_output": "ka",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: basic_consonants"
+    },
+    {
+      "test_name": "phonetic_basic_consonants_2",
+      "input_text": "kha",
+      "expected_output": "kha",
+      "actual_output": "kha",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: basic_consonants"
+    },
+    {
+      "test_name": "phonetic_basic_consonants_3",
+      "input_text": "ga",
+      "expected_output": "ga",
+      "actual_output": "ga",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: basic_consonants"
+    },
+    {
+      "test_name": "phonetic_basic_consonants_4",
+      "input_text": "nga",
+      "expected_output": "nga",
+      "actual_output": "nga",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: basic_consonants"
+    },
+    {
+      "test_name": "phonetic_aspirated_5",
+      "input_text": "pha",
+      "expected_output": "pha",
+      "actual_output": "pha",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: aspirated"
+    },
+    {
+      "test_name": "phonetic_aspirated_6",
+      "input_text": "tha",
+      "expected_output": "tha",
+      "actual_output": "tha",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: aspirated"
+    },
+    {
+      "test_name": "phonetic_aspirated_7",
+      "input_text": "tsha",
+      "expected_output": "tsha",
+      "actual_output": "tsha",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: aspirated"
+    },
+    {
+      "test_name": "phonetic_common_words_8",
+      "input_text": "lha",
+      "expected_output": "lha",
+      "actual_output": "lha",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: common_words"
+    },
+    {
+      "test_name": "phonetic_common_words_9",
+      "input_text": "mo",
+      "expected_output": "mo",
+      "actual_output": "mo",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: common_words"
+    },
+    {
+      "test_name": "phonetic_common_words_10",
+      "input_text": "dbyangs",
+      "expected_output": "yang",
+      "actual_output": "dbyangs",
+      "is_correct": false,
+      "confidence_score": 0.7,
+      "notes": "Category: common_words"
+    },
+    {
+      "test_name": "phonetic_common_words_11",
+      "input_text": "can",
+      "expected_output": "chen",
+      "actual_output": "chan",
+      "is_correct": false,
+      "confidence_score": 0.7,
+      "notes": "Category: common_words"
+    },
+    {
+      "test_name": "phonetic_consonant_clusters_12",
+      "input_text": "phyag",
+      "expected_output": "chak",
+      "actual_output": "phya",
+      "is_correct": false,
+      "confidence_score": 0.0,
+      "notes": "Category: consonant_clusters"
+    },
+    {
+      "test_name": "phonetic_consonant_clusters_13",
+      "input_text": "'tshal",
+      "expected_output": "tsal",
+      "actual_output": "tshal'",
+      "is_correct": false,
+      "confidence_score": 0.7,
+      "notes": "Category: consonant_clusters"
+    },
+    {
+      "test_name": "phonetic_consonant_clusters_14",
+      "input_text": "brgya",
+      "expected_output": "gya",
+      "actual_output": "brgya",
+      "is_correct": false,
+      "confidence_score": 0.7,
+      "notes": "Category: consonant_clusters"
+    },
+    {
+      "test_name": "phonetic_consonant_clusters_15",
+      "input_text": "sgrub",
+      "expected_output": "drub",
+      "actual_output": "sgrub",
+      "is_correct": false,
+      "confidence_score": 0.7,
+      "notes": "Category: consonant_clusters"
+    },
+    {
+      "test_name": "phonetic_phrases_16",
+      "input_text": "lha mo",
+      "expected_output": "lha mo",
+      "actual_output": "lha mo",
+      "is_correct": true,
+      "confidence_score": 1.0,
+      "notes": "Category: phrases"
+    },
+    {
+      "test_name": "phonetic_phrases_17",
+      "input_text": "dbyangs can ma",
+      "expected_output": "yang chen ma",
+      "actual_output": "dbyangs chan ma",
+      "is_correct": false,
+      "confidence_score": 0.7999999999999999,
+      "notes": "Category: phrases"
+    },
+    {
+      "test_name": "phonetic_phrases_18",
+      "input_text": "phyag 'tshal lo",
+      "expected_output": "chak tsal lo",
+      "actual_output": "phyag tshal' lo",
+      "is_correct": false,
+      "confidence_score": 0.5666666666666667,
+      "notes": "Category: phrases"
+    },
+    {
+      "test_name": "phonetic_sanskrit_19",
+      "input_text": "oM",
+      "expected_output": "om",
+      "actual_output": "OHM",
+      "is_correct": false,
+      "confidence_score": 0.7,
+      "notes": "Category: sanskrit"
+    },
+    {
+      "test_name": "phonetic_sanskrit_20",
+      "input_text": "hU~M",
+      "expected_output": "hung",
+      "actual_output": "HOOM",
+      "is_correct": false,
+      "confidence_score": 0.0,
+      "notes": "Category: sanskrit"
+    },
+    {
+      "test_name": "phonetic_sanskrit_21",
+      "input_text": "swA hA",
+      "expected_output": "soha",
+      "actual_output": "swaa haa",
+      "is_correct": false,
+      "confidence_score": 0.3,
+      "notes": "Category: sanskrit"
+    }
+  ]
+}
