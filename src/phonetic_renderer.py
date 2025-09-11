@@ -13,8 +13,9 @@ logger = logging.getLogger(__name__)
 class PhoneticRenderer:
     """Converts Wylie transliteration to phonetic approximations."""
     
-    def __init__(self):
+    def __init__(self, style: str = 'default'):
         """Initialize the phonetic renderer with pronunciation rules."""
+        self.style = style
         
         # Basic Wylie to phonetic consonant mappings
         self.consonant_map = {

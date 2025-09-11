@@ -11,3 +11,6 @@ __pycache__/
 tibetan-texts/
 tibetan_translations/
 .DS_Store
+tibetan_processing.log
+tibetan_output.md
+saras*.txt

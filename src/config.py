@@ -27,10 +27,9 @@ class TibetanConfig(TranslationConfig):
     TRANSLATION_OUTPUT_FILE: str = "tibetan_translation.txt"
     
     # Tibetan conversion options
-    WYLIE_DELIMITER: str = "/"
-    PRESERVE_STRUCTURAL_MARKERS: bool = True
+    WYLIE_DELIMITER: str = "//"
+    PRESERVE_STRUCTURAL_MARKERS: bool = False
     UNICODE_ENCODING: str = "utf-8"
-    PHONETIC_STYLE: str = "simplified"  # Options: simplified, detailed, academic
     
     # Buddhist translation context
     TRANSLATION_CONTEXT: str = "vajrayana_buddhist"

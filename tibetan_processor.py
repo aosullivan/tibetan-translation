@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 from src.config import TibetanConfig as cfg
 from src.tibetan_line_parser import TibetanLineParser
 from src.wylie_converter import WylieConverter
-from src.phonetic_renderer import PhoneticRenderer
 from src.tibetan_translation_client import TibetanTranslationClient
 from src.tibetan_file_handler import TibetanFileHandler
 from src.tibetan_output_formatter import TibetanOutputFormatter
@@ -20,7 +19,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('tibetan_processing.log'),
+        logging.FileHandler('tibetan_processing.log', mode='w'),
         logging.StreamHandler()
     ]
 )
@@ -30,9 +29,6 @@ def main() -> int:
     parser = argparse.ArgumentParser(description='Process Tibetan text: convert Wylie to Tibetan script, generate phonetics, and translate')
     parser.add_argument('--input', '-i', help='Input file path (Wylie format)', default=cfg.INPUT_FILE)
     parser.add_argument('--output', '-o', help='Output file path', default=cfg.OUTPUT_FILE)
-    parser.add_argument('--batch-size', '-b', type=int, help='Batch size for processing', default=cfg.BATCH_SIZE)
-    parser.add_argument('--phonetic-style', '-p', choices=['simplified', 'detailed', 'academic'], 
-                       help='Phonetic rendering style', default=cfg.PHONETIC_STYLE)
     args = parser.parse_args()
 
     load_dotenv()
@@ -42,6 +38,17 @@ def main() -> int:
         return 1
 
     try:
+        # Clean up previous output files
+        output_file_path = args.output
+        progress_file_path = f"{args.output}.progress"
+        
+        if os.path.exists(output_file_path):
+            os.remove(output_file_path)
+            logger.info(f"Deleted existing output file: {output_file_path}")
+        if os.path.exists(progress_file_path):
+            os.remove(progress_file_path)
+            logger.info(f"Deleted existing progress file: {progress_file_path}")
+        
         logger.info(f"Starting Tibetan text processing: {args.input} -> {args.output}")
         
         # Validate input file exists
@@ -61,7 +68,6 @@ def main() -> int:
         try:
             line_parser = TibetanLineParser()
             wylie_converter = WylieConverter()
-            phonetic_renderer = PhoneticRenderer(style=args.phonetic_style)
             translation_client = TibetanTranslationClient(client)
             file_handler = TibetanFileHandler()
             output_formatter = TibetanOutputFormatter()
@@ -107,105 +113,82 @@ def main() -> int:
             except Exception as e:
                 logger.warning(f"Could not load progress file: {e}. Starting fresh.")
         
-        # Process lines in batches
-        for i in range(len(processed_lines), len(tibetan_lines), args.batch_size):
-            batch = tibetan_lines[i:i + args.batch_size]
-            batch_num = (i // args.batch_size) + 1
-            total_batches = (len(tibetan_lines) + args.batch_size - 1) // args.batch_size
-            
-            logger.info(f"Processing batch {batch_num}/{total_batches} ({len(batch)} lines)")
+        # Process lines
+        for line_idx, line in enumerate(tibetan_lines[len(processed_lines):]):
+            current_line_num = len(processed_lines) + line_idx + 1
             
             # Progress indicator
-            progress_percent = (i / len(tibetan_lines)) * 100
+            progress_percent = (current_line_num / len(tibetan_lines)) * 100
             elapsed_time = time.time() - processing_stats['start_time']
-            if i > 0:
-                estimated_total_time = elapsed_time * len(tibetan_lines) / i
+            if current_line_num > 0:
+                estimated_total_time = elapsed_time * len(tibetan_lines) / current_line_num
                 remaining_time = estimated_total_time - elapsed_time
                 logger.info(f"Progress: {progress_percent:.1f}% - Estimated time remaining: {remaining_time/60:.1f} minutes")
             
-            for line in batch:
+            try:
+                # Skip structural markers if configured
+                if line.is_structural and cfg.SKIP_EMPTY_LINES:
+                    logger.debug(f"Skipping structural line {line.line_number}")
+                    processing_stats['skipped'] += 1
+                    continue
+                
+                # Convert Wylie to Tibetan script
                 try:
-                    # Skip structural markers if configured
-                    if line.is_structural and cfg.SKIP_EMPTY_LINES:
-                        logger.debug(f"Skipping structural line {line.line_number}")
-                        processed_line = ProcessedLine(
-                            source_line=line,
-                            tibetan_script="",
-                            phonetic_rendering="",
-                            english_translation="[Structural marker - skipped]",
-                            processing_status=ProcessingStatus.SKIPPED
-                        )
-                        processed_lines.append(processed_line)
-                        processing_stats['skipped'] += 1
-                        continue
-                    
-                    # Convert Wylie to Tibetan script
-                    try:
-                        tibetan_script = wylie_converter.convert_to_tibetan(line.wylie_content)
-                    except Exception as e:
-                        logger.warning(f"Wylie conversion failed for line {line.line_number}: {e}")
-                        tibetan_script = f"[Conversion failed: {line.wylie_content}]"
-                    
-                    # Generate phonetic rendering
-                    try:
-                        phonetic = phonetic_renderer.generate_phonetic(line.wylie_content)
-                    except Exception as e:
-                        logger.warning(f"Phonetic rendering failed for line {line.line_number}: {e}")
-                        phonetic = f"[Phonetic failed: {line.wylie_content}]"
-                    
-                    # Get English translation
-                    try:
-                        translation = translation_client.translate_vajrayana_context(
-                            line.wylie_content, tibetan_script
-                        )
-                    except Exception as e:
-                        logger.warning(f"Translation failed for line {line.line_number}: {e}")
-                        translation = f"[Translation failed: {str(e)}]"
-                    
-                    # Determine processing status
-                    status = ProcessingStatus.SUCCESS
-                    error_msg = None
-                    if "[Conversion failed:" in tibetan_script or "[Phonetic failed:" in phonetic or "[Translation failed:" in translation:
-                        status = ProcessingStatus.PARTIAL_SUCCESS
-                        error_msg = "Some processing steps failed"
-                    
-                    # Create processed line
-                    processed_line = ProcessedLine(
-                        source_line=line,
-                        tibetan_script=tibetan_script,
-                        phonetic_rendering=phonetic,
-                        english_translation=translation,
-                        processing_status=status,
-                        error_message=error_msg
-                    )
-                    
-                    processed_lines.append(processed_line)
-                    processing_stats['processed'] += 1
-                    logger.debug(f"Successfully processed line {line.line_number}")
-                    
+                    tibetan_script = wylie_converter.convert_to_tibetan(line.wylie_content)
                 except Exception as e:
-                    error_msg = f"Complete failure processing line {line.line_number}: {str(e)}"
-                    logger.error(error_msg)
-                    logger.debug(f"Stack trace for line {line.line_number}:\n{traceback.format_exc()}")
-                    
-                    # Create failed processed line for record keeping
-                    processed_line = ProcessedLine(
-                        source_line=line,
-                        tibetan_script="[Processing failed]",
-                        phonetic_rendering="[Processing failed]",
-                        english_translation="[Processing failed]",
-                        processing_status=ProcessingStatus.FAILED,
-                        error_message=str(e)
+                    logger.warning(f"Wylie conversion failed for line {line.line_number}: {e}")
+                    tibetan_script = f"[Conversion failed: {line.wylie_content}]"
+                
+                # Get English translation
+                try:
+                    translation, _ = translation_client.translate_vajrayana_context(
+                        line.wylie_content, tibetan_script
                     )
-                    processed_lines.append(processed_line)
-                    processing_stats['failed'] += 1
-                    processing_stats['errors'].append({
-                        'line_number': line.line_number,
-                        'error': str(e),
-                        'content': line.wylie_content[:100]  # First 100 chars for context
-                    })
+                except Exception as e:
+                    logger.warning(f"Translation failed for line {line.line_number}: {e}")
+                    translation = f"[Translation failed: {str(e)}]"
+                
+                # Determine processing status
+                status = ProcessingStatus.SUCCESS
+                error_msg = None
+                if "[Conversion failed:" in tibetan_script or "[Translation failed:" in translation:
+                    status = ProcessingStatus.PARTIAL_SUCCESS
+                    error_msg = "Some processing steps failed"
+                
+                # Create processed line
+                processed_line = ProcessedLine(
+                    source_line=line,
+                    tibetan_script=tibetan_script,
+                    english_translation=translation,
+                    processing_status=status,
+                    error_message=error_msg
+                )
+                
+                processed_lines.append(processed_line)
+                processing_stats['processed'] += 1
+                
+            except Exception as e:
+                error_msg = f"Complete failure processing line {line.line_number}: {str(e)}"
+                logger.error(error_msg)
+                logger.debug(f"Stack trace for line {line.line_number}:\n{traceback.format_exc()}")
+                
+                # Create failed processed line for record keeping
+                processed_line = ProcessedLine(
+                    source_line=line,
+                    tibetan_script="[Processing failed]",
+                    english_translation="[Processing failed]",
+                    processing_status=ProcessingStatus.FAILED,
+                    error_message=str(e)
+                )
+                processed_lines.append(processed_line)
+                processing_stats['failed'] += 1
+                processing_stats['errors'].append({
+                    'line_number': line.line_number,
+                    'error': str(e),
+                    'content': line.wylie_content[:100]  # First 100 chars for context
+                })
             
-            # Save progress after each batch
+            # Save progress after each line
             if cfg.ENABLE_PROGRESS_SAVING:
                 try:
                     progress_data = {
@@ -219,7 +202,6 @@ def main() -> int:
                                     'markers': pl.source_line.markers
                                 },
                                 'tibetan_script': pl.tibetan_script,
-                                'phonetic_rendering': pl.phonetic_rendering,
                                 'english_translation': pl.english_translation,
                                 'processing_status': pl.processing_status.value,
                                 'error_message': pl.error_message
@@ -246,7 +228,6 @@ def main() -> int:
             return 1
         
         # Generate and display comprehensive summary report
-        summary = output_formatter.generate_summary_report(processed_lines)
         
         # Additional detailed statistics
         success_count = sum(1 for pl in processed_lines if pl.processing_status == ProcessingStatus.SUCCESS)
@@ -271,8 +252,6 @@ def main() -> int:
                 logger.info(f"  Line {error['line_number']}: {error['error']}")
             if len(processing_stats['errors']) > 5:
                 logger.info(f"  ... and {len(processing_stats['errors']) - 5} more errors")
-        
-        logger.info(f"\nDetailed summary:\n{summary}")
         
         # Clean up progress file on successful completion
         if cfg.ENABLE_PROGRESS_SAVING and os.path.exists(progress_file):

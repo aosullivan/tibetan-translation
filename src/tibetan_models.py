@@ -20,7 +20,6 @@ class TibetanLine:
 class ProcessedLine:
     source_line: TibetanLine
     tibetan_script: str
-    phonetic_rendering: str
     english_translation: str
     processing_status: ProcessingStatus
     error_message: Optional[str] = None
