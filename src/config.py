@@ -9,11 +9,11 @@ class TranslationConfig:
     PROGRESS_FILE: str = "progress.json"
 
     # Translation settings
-    CHUNK_SIZE: int = 1500
+    CHUNK_SIZE: int = 2250
     SUMMARY_INTERVAL: int = 5
     MAX_RETRIES: int = 3
     INITIAL_DELAY: int = 1
-    MODEL: str = "claude-sonnet-4-20250514"
+    MODEL: str = "claude-sonnet-4-6"
     MAX_TOKENS: int = 1000
 
 
