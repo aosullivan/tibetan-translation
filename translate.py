@@ -24,6 +24,7 @@ def main() -> int:
     parser.add_argument('--input', '-i', help='Input file path', default=cfg.INPUT_FILE)
     parser.add_argument('--output', '-o', help='Output file path', default=cfg.OUTPUT_FILE)
     args = parser.parse_args()
+    cfg.OUTPUT_FILE = args.output
 
     load_dotenv()
     api_key = os.getenv('ANTHROPIC_API_KEY')

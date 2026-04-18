@@ -1,327 +1,185 @@
-# Tibetan Text Processor 🕉️
+# Tibetan translation toolkit
 
-A comprehensive tool for processing classical Tibetan texts with Wylie transliteration. Converts Wylie to Tibetan Unicode script, generates phonetic renderings, and provides Vajrayana Buddhist expert translations using the Anthropic Claude API.
+Process classical Tibetan in **Wylie (EWTS)**: convert to Unicode, optional phonetics, and **English translation** via the Anthropic Claude API.
 
-## Features
+## Setup
 
-- **Wylie to Tibetan Script Conversion**: Converts Wylie transliteration to Unicode Tibetan script using the `pyewts` library
-- **Phonetic Rendering**: Generates readable phonetic approximations of Tibetan pronunciation
-- **Buddhist Expert Translation**: Provides contextually accurate translations with Vajrayana Buddhist expertise
-- **Three-Column Output**: Structured format showing Tibetan script, phonetics, and English translation side-by-side
-- **Progress Tracking**: Resumable processing with automatic progress saving
-- **Error Handling**: Graceful degradation with detailed error reporting
-- **Performance Optimization**: Batch processing and memory monitoring for large texts
+Use a virtual environment and install dependencies:
 
-## Quick Start
-
-1. **Install dependencies**:
 ```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+cd /path/to/tibetan-translation
+python3 -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-2. **Set up API credentials**:
+On **Python 3.13+**, if `pyewts` fails to install, use a setuptools version that still provides `pkg_resources`:
+
 ```bash
-# Create .env file
-echo "ANTHROPIC_API_KEY=your_key_here" > .env
+pip install 'setuptools<81'
+pip install -r requirements.txt
 ```
 
-3. **Process Tibetan text**:
+Create a **`.env`** file in the project root (or export in your shell):
+
 ```bash
-# Basic usage with default settings
-python tibetan_processor.py
-
-# Custom input/output files
-python tibetan_processor.py -i your_wylie_file.txt -o output.md
-
-# Adjust batch size and phonetic style
-python tibetan_processor.py -b 5 -p detailed
+echo 'ANTHROPIC_API_KEY=your_key_here' > .env
 ```
 
-## Input Format
+Translation uses **`TranslationConfig.MODEL`** in `src/config.py` (default: **`claude-sonnet-4-6`**). Change it there if you need another Claude model id.
 
-The processor expects Wylie transliterated Tibetan text with specific formatting:
+### Quick run
 
-- **Line delimiter**: Forward slash `/` separates logical lines
-- **Structural markers**: Elements like `(kha)@#/[ ]/` mark document structure
-- **Wylie content**: Standard Wylie transliteration between delimiters
+From the repo root, with venv active and `.env` containing `ANTHROPIC_API_KEY`:
 
-**Example input format**:
-```
-(kha)@#/[ ]/bo dong paN chen phyogs las rnam rgyal nas brgyud pa'i/
-dbyangs can dkar mo'i sgrub thabs gegs sel rjes gnang/
-bstod pa dang bcas pa'i skor rnams bzhugs so//_@#/[ ]/
-lha mo dbyangs can ma la phyag 'tshal lo/[ ]/
+```bash
+# Plain Wylie → English (chunked; resumable via progress.json)
+python wylie_translate_chunks.py -i tibetan-texts/manjusrikirti.txt -o tibetan-texts/manjusrikirti.en.md
+
+# Pecha-style /-delimited Wylie → markdown with Tibetan + phonetic + English
+python pecha_processor.py -i input.txt -o tibetan_output.md
 ```
 
-## Output Format
+Put long-form Wylie exports under **`tibetan-texts/`** (or any path; use `-i` / `-o` as needed). For full flags on any entrypoint:
 
-The processor generates a structured three-column markdown format:
-
-```markdown
-## Line 1
-
-**Original:** (kha)@#/[ ]/bo dong paN chen phyogs las rnam rgyal nas brgyud pa'i/
-
-**Wylie:** bo dong paN chen phyogs las rnam rgyal nas brgyud pa'i
-
-**Tibetan:** བོ་དོང་པཎ་ཆེན་ཕྱོགས་ལས་རྣམ་རྒྱལ་ནས་བརྒྱུད་པའི
-
-**Phonetic:** bo dong pan chen chok le nam gyal ne gyü pé
-
-**Translation:** From the lineage transmitted by Bodong Panchen Chokle Namgyal
-
-**Status:** ✅ success
+```bash
+python wylie_translate_chunks.py --help
+python translate.py --help
+python pecha_processor.py --help
+python xml_to_wylie.py --help
+python pdf_to_wylie.py --help
+```
 
 ---
-```
 
-## Command Line Options
+## How to run
+
+Run commands from the project root with the venv activated.
+
+### 1. Wylie file → English (chunked, resumable)
+
+Best when you have a **plain UTF-8 Wylie/EWTS** file (for example from `xml_to_wylie.py` or another source). The text is split into chunks, translated sequentially with rolling context, and progress is saved so you can resume after interruption.
 
 ```bash
-python tibetan_processor.py [OPTIONS]
-
-Options:
-  -i, --input FILE          Input file path (default: saras-tibetan.txt)
-  -o, --output FILE         Output file path (default: tibetan_output.md)
-  -b, --batch-size N        Lines to process per batch (default: 10)
-  -p, --phonetic-style STY  Phonetic style: simplified|detailed|academic (default: simplified)
-  -h, --help               Show help message
+python wylie_translate_chunks.py -i tibetan-texts/manjusrikirti.txt -o tibetan-texts/manjusrikirti.en.md
 ```
+
+Useful options:
+
+| Option | Meaning |
+|--------|---------|
+| `-i` / `--input` | Input Wylie file (required) |
+| `-o` / `--output` | Output markdown (default: `<input-stem>.translation.md`) |
+| `--chunk-size N` | Target characters per chunk before snapping at `/` or space (default: 1500) |
+| `--progress PATH` | Resume state (default: `progress.json` in cwd) |
+| `--log PATH` | Log file (default: `translation.log`) |
+| `-v` | Verbose logging |
+
+Equivalent pipeline with shared defaults: **`translate.py`** (also respects `-i`, `-o`; output path is applied to config before run):
+
+```bash
+python translate.py -i your.wylie.txt -o out.md
+```
+
+Logs: `translation.log`. Output appends **English only** per chunk (see `src/file_handler.py`).
+
+### 2. Structured Wylie lines → Tibetan + phonetic + English (markdown)
+
+For input that uses **`/`-delimited** lines and structural markers (pecha-style), use the full formatter:
+
+```bash
+python pecha_processor.py -i input.txt -o tibetan_output.md
+```
+
+Defaults are in **`TibetanConfig`** inside `src/config.py` (`INPUT_FILE`, `OUTPUT_FILE`, etc.). Requires `ANTHROPIC_API_KEY`.
+
+A cached / parallel variant lives in **`src/tibetan_processor_optimized.py`** (run with `python src/tibetan_processor_optimized.py --help` if you use it).
+
+### 3. Tibetan Unicode XML → Wylie
+
+ACIP-style XML with `<page>` and `<line/>`:
+
+```bash
+python xml_to_wylie.py -i path/to/text.xml -o out.wylie.txt
+```
+
+Omit `-o` to write `<stem>.wylie.txt` next to the XML.
+
+### 4. PDF → Wylie (vision / extraction)
+
+```bash
+python pdf_to_wylie.py --help
+```
+
+Uses the Anthropic API for image or text extraction (see script for flags).
+
+---
+
+## Input formats (summary)
+
+| Script | Input |
+|--------|--------|
+| `wylie_translate_chunks.py`, `translate.py` | Plain UTF-8 Wylie/EWTS text file |
+| `pecha_processor.py` | Wylie with `/` line delimiters and optional structural markers (see `src/tibetan_line_parser.py`) |
+| `xml_to_wylie.py` | ACIP-style XML with Tibetan Unicode in `<page>` elements |
+
+---
 
 ## Configuration
 
-Customize processing behavior by editing `config.py`:
+Central settings: **`src/config.py`**
 
-### Basic Settings
-```python
-# Input/Output files
-INPUT_FILE = "saras-tibetan.txt"
-OUTPUT_FILE = "tibetan_output.md"
-
-# Processing options
-BATCH_SIZE = 10
-PHONETIC_STYLE = "simplified"  # simplified, detailed, academic
-SKIP_EMPTY_LINES = True
-```
-
-### Advanced Settings
-```python
-# Performance optimization
-ENABLE_CACHING = True
-MAX_CONCURRENT_API_CALLS = 3
-MEMORY_MONITORING_INTERVAL = 10
-
-# Buddhist translation context
-TRANSLATION_CONTEXT = "vajrayana_buddhist"
-PRESERVE_SANSKRIT_TERMS = True
-HANDLE_MANTRAS_SPECIALLY = True
-
-# Progress and error handling
-ENABLE_PROGRESS_SAVING = True
-AUTO_SAVE_INTERVAL = 50
-```
-
-## Processing Workflow
-
-1. **Line Parsing**: Splits input on `/` delimiters and extracts Wylie content
-2. **Wylie Conversion**: Converts to Unicode Tibetan script using linguistic rules
-3. **Phonetic Rendering**: Generates pronunciation based on Tibetan phonetic rules
-4. **Translation**: Provides contextually accurate Buddhist translations via Claude API
-5. **Output Formatting**: Creates structured three-column markdown output
-6. **Progress Tracking**: Saves intermediate results for resumption capability
-
-## Examples
-
-### Basic Processing
-```bash
-# Process the default input file
-python tibetan_processor.py
-
-# Output: tibetan_output.md with three-column format
-```
-
-### Custom Configuration
-```bash
-# Process with detailed phonetics and smaller batches
-python tibetan_processor.py \
-  --input my_tibetan_text.txt \
-  --output detailed_output.md \
-  --batch-size 5 \
-  --phonetic-style detailed
-```
-
-### Resume Interrupted Processing
-```bash
-# If processing was interrupted, simply run again
-# Progress will be automatically resumed from the last saved state
-python tibetan_processor.py
-```
-
-## Output Examples
-
-### Successful Processing
-```markdown
-## Line 15
-
-**Original:** lha mo dbyangs can ma la phyag 'tshal lo/[ ]/
-
-**Wylie:** lha mo dbyangs can ma la phyag 'tshal lo
-
-**Tibetan:** ལྷ་མོ་དབྱངས་ཅན་མ་ལ་ཕྱག་འཚལ་ལོ
-
-**Phonetic:** lha mo yang chen ma la chak tsal lo
-
-**Translation:** I prostrate to the goddess Saraswati
-
-**Status:** ✅ success
+- **`TranslationConfig`**: `MODEL`, `CHUNK_SIZE`, default `INPUT_FILE` / `OUTPUT_FILE`, `PROGRESS_FILE` for chunk translation.
+- **`TibetanConfig`**: extends the above for pecha processing (paths, batch size, caching, etc.).
 
 ---
+
+## Tests and cleanup
+
+```bash
+python -m pytest tests/
 ```
 
-### Partial Success (with warnings)
-```markdown
-## Line 23
+Remove common generated outputs/logs (see `src/clean_outputs.py`):
 
-**Original:** complex_wylie_with_errors/
-
-**Wylie:** complex_wylie_with_errors
-
-**Tibetan:** [Conversion failed: complex_wylie_with_errors]
-
-**Phonetic:** complex wylie with errors
-
-**Translation:** [Translation of uncertain Wylie transliteration]
-
-**Status:** ⚠️ partial
-
-**Error:** Wylie conversion encountered unknown sequences
+```bash
+python src/clean_outputs.py
+```
 
 ---
+
+## Project layout (high level)
+
+```
+├── wylie_translate_chunks.py   # Wylie → English (chunked)
+├── translate.py                 # Same chunk pipeline, simpler CLI
+├── pecha_processor.py           # Line-based Wylie → Tibetan + phonetic + translation MD
+├── xml_to_wylie.py              # ACIP XML → Wylie
+├── pdf_to_wylie.py              # PDF → Wylie
+├── src/
+│   ├── config.py                # TranslationConfig, TibetanConfig
+│   ├── translation_client.py    # Chunk translation + summaries
+│   ├── translation_manager.py   # Orchestration, resume
+│   ├── file_handler.py          # Chunking, progress, output append
+│   ├── wylie_converter.py       # Wylie → Unicode (pyewts)
+│   ├── tibetan_translation_client.py  # Vajrayana-oriented API prompts (pecha path)
+│   └── …
+├── requirements.txt
+└── tests/
 ```
 
-## Performance and Optimization
-
-### Memory Usage
-- **Batch Processing**: Processes lines in configurable batches to manage memory
-- **Progress Saving**: Automatically saves progress every 50 lines (configurable)
-- **Memory Monitoring**: Tracks memory usage and provides warnings
-
-### API Efficiency
-- **Rate Limiting**: Respects API rate limits with exponential backoff
-- **Concurrent Calls**: Configurable concurrent API calls (default: 3)
-- **Caching**: Optional caching of translation results
-- **Retry Logic**: Automatic retry on transient failures
-
-### Large File Processing
-```bash
-# For very large files, use smaller batches and enable all optimizations
-python tibetan_processor.py \
-  --batch-size 5 \
-  --input large_tibetan_corpus.txt \
-  --output large_output.md
-
-# Monitor progress in tibetan_processing.log
-tail -f tibetan_processing.log
-```
+---
 
 ## Troubleshooting
 
-### Common Issues
+**`ANTHROPIC_API_KEY` not set** — Add it to `.env` or your environment; `python-dotenv` loads `.env` from the project root when you run the scripts.
 
-**1. API Key Not Found**
-```
-Error: ANTHROPIC_API_KEY environment variable not set
-```
-**Solution**: Create `.env` file with your API key or set environment variable
+**`ModuleNotFoundError`** — Activate the venv and run `pip install -r requirements.txt`.
 
-**2. Input File Format Issues**
-```
-Warning: No lines found to process in input file
-```
-**Solution**: Ensure input uses `/` as line delimiters and contains Wylie content
+**Resume chunk translation** — Re-run the same command; progress is stored in `progress.json` (or your `--progress` path). Delete that file to start from scratch.
 
-**3. Unicode Display Problems**
-```
-Warning: Unicode encoding issue
-```
-**Solution**: Ensure your terminal/editor supports Unicode Tibetan fonts
-
-**4. Memory Issues with Large Files**
-```
-Warning: High memory usage detected
-```
-**Solution**: Reduce batch size and enable memory monitoring:
-```bash
-python tibetan_processor.py --batch-size 3
-```
-
-### Debug Mode
-Enable detailed logging by setting log level in the script:
-```python
-logging.basicConfig(level=logging.DEBUG)
-```
-
-### Progress Recovery
-If processing is interrupted:
-1. Check for `.progress` file in output directory
-2. Simply re-run the same command - processing will resume automatically
-3. Delete `.progress` file to start fresh if needed
-
-## Dependencies
-
-- **anthropic**: Claude API client for translations
-- **python-dotenv**: Environment variable management
-- **pyewts**: Wylie to Tibetan Unicode conversion
-- **pynacl**: Cryptographic functions (dependency)
-
-## File Structure
-
-```
-tibetan-text-processor/
-├── tibetan_processor.py          # Main entry point
-├── config.py                     # Configuration settings
-├── requirements.txt              # Python dependencies
-├── .env                         # API credentials (create this)
-├── saras-tibetan.txt            # Default input file
-├── src/                         # Processing modules
-│   ├── tibetan_line_parser.py   # Line parsing and structure
-│   ├── wylie_converter.py       # Wylie to Tibetan conversion
-│   ├── phonetic_renderer.py     # Phonetic rendering
-│   ├── tibetan_translation_client.py  # Buddhist translation
-│   ├── tibetan_file_handler.py  # File I/O operations
-│   └── tibetan_output_formatter.py    # Output formatting
-└── tests/                       # Unit tests
-    └── test_*.py               # Test modules
-```
-
-## Advanced Usage
-
-### Custom Translation Prompts
-Modify `src/tibetan_translation_client.py` to customize translation behavior for specific text types or terminology.
-
-### Phonetic Style Customization
-The phonetic renderer supports three styles:
-- **simplified**: Basic readable approximation
-- **detailed**: Includes tone and aspiration markers
-- **academic**: Scholarly transcription with diacritics
-
-### Batch Processing Multiple Files
-```bash
-# Process multiple files in sequence
-for file in *.txt; do
-    python tibetan_processor.py -i "$file" -o "${file%.txt}_output.md"
-done
-```
-
-## Contributing
-
-1. Run tests: `python -m pytest tests/`
-2. Check code style: Follow existing patterns
-3. Add tests for new features
-4. Update documentation for changes
+---
 
 ## License
 
-This tool is designed for academic and religious study of Tibetan Buddhist texts. Please use respectfully and in accordance with traditional guidelines for handling sacred texts.
+This project is intended for academic and religious study of Tibetan Buddhist texts. Use respectfully and in line with traditional guidelines for sacred material.

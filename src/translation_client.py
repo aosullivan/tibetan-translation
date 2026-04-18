@@ -128,7 +128,8 @@ class TranslationClient:
     @staticmethod
     def _build_translation_prompt(context: str, text: str) -> str:
         return f"""
-        You are an AI agent for translating classical Tibetan texts into English. 
+        You are an AI agent for translating classical Tibetan texts into English.
+        The source text is Wylie (EWTS) transliteration unless you clearly see Unicode Tibetan.
         You will receive parts of a text sequentially. Your task is to translate the current part 
         while maintaining logical and semantic consistency and continuity with the previous chunk of translation, and the overall translation summary.
 
