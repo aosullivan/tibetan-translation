@@ -1,16 +1,62 @@
+# Secrets / env
 .env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+myenv/
+.venv/
+venv/
+
+# Editors / OS
+.DS_Store
 .clj-kondo/
 .lsp/
-translation.txt
-output.txt
-progress.json
-translation.log
+.vscode/
+.cursor/
+.kiro/
+
+# --- Translation artifacts (inputs, outputs, intermediates) ---
+
+# Source PDFs / scanned pechas
+*.pdf
+
+# Wylie / transliteration intermediate outputs
+*.wylie.txt
+*.phonetic.txt
+
+# Translation outputs
 translation*.md
-myenv/
-__pycache__/
+translation*.txt
+tibetan_output.md
+tibetan_translation.txt
+tibetan_wylie.txt
+tibetan_phonetic.txt
+output.txt
+*.translation.md
+
+# Per-run input corpora (kept out of VCS; use fixtures for tests)
+input.txt
+saras*.txt
+phakmo-sadhana.txt
 tibetan-texts/
 tibetan_translations/
-.DS_Store
-tibetan_processing.log
-tibetan_output.md
-saras*.txt
+
+# Progress / resume state
+progress*.json
+*.json.bak
+
+# Logs
+*.log
+*.log.bak
+
+# Caches
+tibetan_processor_cache.json
+
+# Keep test fixtures even though they match patterns above
+!tests/fixtures/
+!tests/fixtures/**
