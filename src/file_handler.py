@@ -24,11 +24,24 @@ class FileHandler:
         except json.JSONDecodeError:
             logger.warning("Progress file corrupted, starting fresh")
 
+    def get_cursor(self) -> int:
+        meta = self.progress.get("_meta") if isinstance(self.progress, dict) else None
+        if isinstance(meta, dict):
+            val = meta.get("cursor")
+            if isinstance(val, int):
+                return val
+        return -1
+
+    def set_cursor(self, cursor: int) -> None:
+        if not isinstance(self.progress.get("_meta"), dict):
+            self.progress["_meta"] = {}
+        self.progress["_meta"]["cursor"] = cursor
+
     def save_progress(self) -> None:
         """Save current progress to file"""
         with open(cfg.PROGRESS_FILE, 'w') as f:
             json.dump(self.progress, f)
-        
+
         with open(cfg.OUTPUT_FILE, 'w', encoding='utf-8') as f:
             f.write(self.current_output)
 

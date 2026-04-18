@@ -9,7 +9,8 @@ resumable via progress.json.
 Requires ANTHROPIC_API_KEY in the environment (.env supported).
 
 Example:
-  python wylie_translate_chunks.py -i bstan-gyur_toh2488_rgyud_zi148.wylie.txt -o toh2488.en.md
+  python wylie_translate_chunks.py -i bstan-gyur_toh2488_rgyud_zi148.wylie.txt
+  # writes tibetan_translations/bstan-gyur_toh2488_rgyud_zi148.translation.md
 """
 
 from __future__ import annotations
@@ -23,6 +24,8 @@ from pathlib import Path
 
 from anthropic import Anthropic
 from dotenv import load_dotenv
+
+from src.config import TranslationConfig as cfg
 
 
 def main() -> int:
@@ -41,7 +44,10 @@ def main() -> int:
         "--output",
         type=Path,
         default=None,
-        help="Output markdown file (default: <input-stem>.translation.md)",
+        help=(
+            "Output markdown. Relative paths go under tibetan_translations/. "
+            "Default: tibetan_translations/<input-stem>.translation.md"
+        ),
     )
     parser.add_argument(
         "--chunk-size",
@@ -62,6 +68,12 @@ def main() -> int:
         default=Path("translation.log"),
         help="Log file path (default: translation.log)",
     )
+    parser.add_argument(
+        "--outline",
+        type=Path,
+        default=None,
+        help="Optional markdown outline file (sa bcad) guiding section headings",
+    )
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
 
@@ -70,19 +82,24 @@ def main() -> int:
         print(f"Input not found: {inp}", file=sys.stderr)
         return 1
 
+    repo_root = Path(__file__).resolve().parent
+    out_dir = repo_root / cfg.TRANSLATIONS_OUTPUT_DIR
     out = args.output
     if out is None:
-        out = inp.with_suffix(".translation.md")
+        out = out_dir / f"{inp.stem}.translation.md"
     else:
-        out = out.expanduser().resolve()
+        out = out.expanduser()
+        if out.is_absolute():
+            out = out.resolve()
+        else:
+            out = (out_dir / out).resolve()
+    out.parent.mkdir(parents=True, exist_ok=True)
 
     load_dotenv()
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         print("ANTHROPIC_API_KEY is not set (use .env or export).", file=sys.stderr)
         return 1
-
-    from src.config import TranslationConfig as cfg
 
     cfg.CHUNK_SIZE = args.chunk_size
     cfg.OUTPUT_FILE = str(out)
@@ -105,11 +122,21 @@ def main() -> int:
         from src.translation_client import TranslationClient
         from src.file_handler import FileHandler
         from src.translation_manager import TranslationManager
+        from src.outline import load_outline
+
+        outline_entries = None
+        if args.outline is not None:
+            outline_path = args.outline.expanduser().resolve()
+            if not outline_path.is_file():
+                print(f"Outline not found: {outline_path}", file=sys.stderr)
+                return 1
+            outline_entries = load_outline(outline_path)
+            logger.info("Loaded outline %s (%d entries)", outline_path, len(outline_entries))
 
         client = Anthropic(api_key=api_key)
         translation_client = TranslationClient(client)
         file_handler = FileHandler()
-        translator = TranslationManager(translation_client, file_handler)
+        translator = TranslationManager(translation_client, file_handler, outline_entries)
         logger.info("Translating %s -> %s (chunk_size=%s)", inp, out, cfg.CHUNK_SIZE)
         translator.translate_file(str(inp))
         return 0

@@ -153,7 +153,25 @@ Pass `--log` multiple times to merge several log files in order (later entries w
 | `--chunk-size N` | Target chars per chunk (default: **2250**) |
 | `--progress PATH` | Resume state (default: `progress.json` in cwd) |
 | `--log PATH` | Log file path (default: `translation.log`) |
+| `--outline PATH` | Markdown outline file (sa bcad) for structure-aware headings — see below |
 | `-v` | Verbose logging |
+
+#### Outline-aware translation (`--outline`)
+
+For scholastic texts with a topical outline (*sa bcad*), pass a markdown file listing the section hierarchy and the translator will emit matching markdown headings verbatim at the right points, with a cursor that advances across chunks and survives resume (persisted in `progress.json` under `_meta`).
+
+The outline file can use any mix of `#`-headings and `**bold**` entries (indentation and fenced code blocks are fine; `← STATUS` and `(parenthetical)` annotations are stripped). Each entry becomes a flat line the model must emit verbatim when it finds a semantic match in the Tibetan — otherwise in-paragraph enumerations (`dang po ni`, `gnyis pa ni`, …) remain as ordinary prose or numbered lists. Ambiguous cases get flagged inline as `[?editor: possible new section — candidate "X"]`.
+
+Example:
+
+```bash
+python wylie_translate_chunks.py \
+    -i dispelling-error.wylie.txt \
+    -o dispelling-error.en.md \
+    --outline Structure.md
+```
+
+See [`src/outline.py`](src/outline.py) for the parser. The feature is opt-in — without `--outline` the translator behaves exactly as before.
 
 ### `pdf_to_wylie.py`
 
