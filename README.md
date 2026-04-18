@@ -101,6 +101,27 @@ Prefer the optimized variant when running on long texts; it adds caching, batchi
 python -m src.tibetan_processor_optimized -i phakmo-sadhana.txt -o phakmo-sadhana.md
 ```
 
+#### What "pecha" means here
+
+A **pecha** (Tib. དཔེ་ཆ་, *dpe cha*) is the traditional Tibetan book format: loose unbound horizontal folios stacked between two wooden covers. There's no sentence case, no paragraph breaks — just continuous text punctuated by the shad (`།`) and occasional folio/section markers. Most canonical Tibetan Buddhist literature (Kangyur, Tengyur, sadhanas, commentaries) still lives in this format; digital editions from archives like **BDRC** and **ACIP** preserve its shape.
+
+`pecha_processor.py` doesn't care about the physical pecha — it cares about the **digital convention for encoding pechas in Wylie**: short `/`-delimited phrases with ACIP/BDRC-style annotation markers. The parser at [`src/tibetan_line_parser.py:51`](src/tibetan_line_parser.py:51) splits on a specific set of delimiter tokens (`////`, `//_!_`, `/[ ]/`, `//`, `/_`, `*/_`, `_`) and recognizes structural markers like `[...]`, `(kha)`, and `!_..._!_` as folio/section annotations. It then coalesces fragments into chunks of ~12 Wylie tokens so each line is a natural syntactic unit.
+
+That shape matters because this pipeline's job is to produce a **three-line stacked display** per segment — Tibetan Unicode, Wylie, English — suitable for recitation, study editions, or interlinear publication. That only works if:
+
+1. **Segments are short and meaningful.** A pecha "line" is typically one clause or verse line. Feed it flat prose with no `/` delimiters and the whole file becomes one giant segment.
+2. **Folio markers are preserved.** Canonical texts mark page boundaries inline (`[ ]`, `(kha)`); the parser pulls them out as standalone structural lines.
+3. **Each segment translates independently.** The pecha client uses Vajrayana-aware prompts per line, not a rolling chunk pipeline — short self-contained units are the assumption.
+
+**Which script should I use?**
+
+| Your input | Use |
+|---|---|
+| Running Wylie prose, essay, commentary — anything flowing | `wylie_translate_chunks.py` |
+| `/`-delimited Wylie from a digital pecha edition (BDRC, ACIP, or hand-transcribed sadhana) | `pecha_processor.py` |
+| You want an **interlinear** study edition with Tibetan script + phonetics + English | `pecha_processor.py` (only it produces the three-layer output) |
+| You just want English translation | `wylie_translate_chunks.py` (simpler, resumable, no per-line overhead) |
+
 ### D. Repairing an interrupted translation
 
 If a long run was killed but `translation.log` is intact, you can rebuild the output mostly (or entirely) from logs without re-calling the API:
