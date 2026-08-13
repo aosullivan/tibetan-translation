@@ -151,7 +151,7 @@ Pass `--log` multiple times to merge several log files in order (later entries w
 | `-i` / `--input` | Input Wylie/EWTS file (required) |
 | `-o` / `--output` | Output markdown (default: `<input-stem>.translation.md`) |
 | `--chunk-size N` | Target chars per chunk (default: **2250**) |
-| `--progress PATH` | Resume state (default: `progress.json` in cwd) |
+| `--progress PATH` | Resume state (default: `<output>.progress.json` — scoped per input, so progress from a different text can't be reused and skip chunks) |
 | `--log PATH` | Log file path (default: `translation.log`) |
 | `--outline PATH` | Markdown outline file (sa bcad) for structure-aware headings — see below |
 | `-v` | Verbose logging |
@@ -226,6 +226,21 @@ All configurable defaults are in [`src/config.py`](src/config.py):
 │   ├── phonetic_renderer.py            # Romanized phonetics
 │   ├── repair_translation_from_log.py  # Rebuild from translation.log
 │   └── clean_outputs.py                # Remove logs / progress / outputs
+├── scripts/                            # Fetch + OCR helpers (BDRC, Tengyur, line segmentation)
+├── docs/                               # Research and method notes
+├── tibetan-texts/                      # SOURCES — see tibetan-texts/README.md
+│   ├── vajrayogini/                    #   Vajrayoginī / Nāro Khecarī / Vajravārāhī
+│   ├── kalachakra/                     #   Kālacakra root tantras + Vimalaprabhā
+│   ├── hevajra-lamdre/                 #   Hevajra, Sampuṭa, lam 'bras
+│   ├── vows-and-samaya/                #   Three vows, root downfalls, guru devotion
+│   ├── tantra-general/                 #   Maṇḍala ritual, tantric śāstra
+│   ├── sutra-and-shastra/              #   Sūtra and non-tantric treatise
+│   ├── biography-and-history/          #   Namthar, genealogy, catalogues
+│   ├── bodong/                         #   Bodong Panchen project
+│   ├── collected-works/                #   gsung 'bum volumes not yet broken out
+│   ├── misc/                           #   One-offs
+│   └── _unidentified/                  #   OCR'd scans not yet matched to a work
+├── tibetan_translations/               # OUTPUTS — same folders, mirrored
 └── tests/                              # pytest suite (+ tests/fixtures/)
 ```
 
@@ -247,7 +262,7 @@ Fixtures live in [`tests/fixtures/`](tests/fixtures/) and are checked in; genera
 
 **`ModuleNotFoundError: pyewts` / `pdfplumber`** — make sure the venv is activated and `pip install -r requirements.txt` completed cleanly (see Python 3.13 note above).
 
-**Resume a translation** — re-run the same command; progress is stored in `progress.json` (or your `--progress` path). Delete it to start fresh. For a run that exited badly but wrote a log, use `src/repair_translation_from_log.py` instead of re-translating.
+**Resume a translation** — re-run the same command; progress is stored in `<output>.progress.json` (co-located with the output, scoped per input — or your `--progress` path). Delete it to start fresh. Progress files also record the input path in `_meta.input`; if you point `--progress` at a file from a different text, the mismatch is detected and progress is reset rather than silently skipping chunks. For a run that exited badly but wrote a log, use `src/repair_translation_from_log.py` instead of re-translating.
 
 **Image-heavy PDFs fail to extract** — `pdf_to_wylie.py` will fall back to Claude Vision OCR automatically when `pdfplumber` and `PyPDF2` return no text. Ensure `ANTHROPIC_API_KEY` is set and you're on a plan with Vision access.
 

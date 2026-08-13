@@ -3,6 +3,9 @@
 .env.*
 !.env.example
 
+# OCR language data (downloaded, not tracked)
+tessdata-tib/
+
 # Python
 __pycache__/
 *.py[cod]
@@ -43,8 +46,15 @@ output.txt
 input.txt
 saras*.txt
 phakmo-sadhana.txt
-tibetan-texts/
-tibetan_translations/
+
+# Corpora: ignore the contents, but keep the catalogue READMEs in version control
+tibetan-texts/*
+!tibetan-texts/README.md
+tibetan_translations/*
+!tibetan_translations/README.md
+
+# Quarantined during tidy-up; delete when you've reviewed it
+_to_delete/
 
 # Progress / resume state
 progress*.json
@@ -60,3 +70,6 @@ tibetan_processor_cache.json
 # Keep test fixtures even though they match patterns above
 !tests/fixtures/
 !tests/fixtures/**
+
+# Machine-local Claude tool permissions (skills are tracked)
+.claude/settings.local.json
