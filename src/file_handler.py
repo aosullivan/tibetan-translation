@@ -12,6 +12,7 @@ class FileHandler:
     def __init__(self):
         self.progress: Dict[str, bool] = {}
         self.current_output = ""
+        self._input_identity: str | None = None
         self._load_progress()
 
     def _load_progress(self) -> None:
@@ -23,6 +24,25 @@ class FileHandler:
             logger.info("No progress file found, starting fresh")
         except json.JSONDecodeError:
             logger.warning("Progress file corrupted, starting fresh")
+
+    def bind_input(self, input_file: str) -> None:
+        """Bind this progress to an input file. Resets progress if the stored
+        identity does not match — prevents chunks marked done for one text
+        from being skipped when translating a different text."""
+        identity = os.path.abspath(input_file)
+        self._input_identity = identity
+        meta = self.progress.get("_meta") if isinstance(self.progress, dict) else None
+        stored = meta.get("input") if isinstance(meta, dict) else None
+        if stored is not None and stored != identity:
+            logger.warning(
+                "Progress file %s was last used for input %s but this run uses %s; "
+                "resetting progress to avoid skipping chunks.",
+                cfg.PROGRESS_FILE, stored, identity,
+            )
+            self.progress = {}
+        if not isinstance(self.progress.get("_meta"), dict):
+            self.progress["_meta"] = {}
+        self.progress["_meta"]["input"] = identity
 
     def get_cursor(self) -> int:
         meta = self.progress.get("_meta") if isinstance(self.progress, dict) else None

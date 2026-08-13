@@ -41,7 +41,8 @@ def _flush_raw_block(
     raw = "\n".join(raw_lines).strip()
     if not raw:
         return
-    translation, _ = TranslationClient._parse_translation_response(raw)
+    parsed = TranslationClient._parse_translation_response(raw)
+    translation = parsed[0]
     out[current_chunk] = translation
 
 
@@ -155,7 +156,11 @@ def rebuild(
     body = "\n\n".join(built) + "\n\n"
 
     cfg.OUTPUT_FILE = str(output_file)
-    fh.progress = {str(i): True for i in range(n)}
+    cfg.PROGRESS_FILE = str(output_file.with_suffix(".progress.json"))
+    fh.progress = {
+        "_meta": {"input": os.path.abspath(str(input_file))},
+        **{str(i): True for i in range(n)},
+    }
     fh.current_output = header + body
     fh.save_progress()
     return missing, n

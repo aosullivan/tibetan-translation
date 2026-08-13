@@ -52,7 +52,7 @@ class TranslationClient:
 
                 message = self.client.messages.create(
                     model=cfg.MODEL,
-                    max_tokens=1000,
+                    max_tokens=cfg.MAX_TOKENS,
                     messages=[
                         {
                             "role": "user",

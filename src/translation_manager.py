@@ -39,9 +39,10 @@ class TranslationManager:
 
     def translate_file(self, input_file: str = cfg.INPUT_FILE) -> None:
         """Main translation process"""
+        self.file_handler.bind_input(input_file)
         content = self.file_handler.read_input_file(input_file)
         parts = self.file_handler.chunk_text(content)
-        
+
         self.file_handler.initialize_output_file()
         
         previous_translation = ""

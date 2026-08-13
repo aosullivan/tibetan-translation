@@ -60,7 +60,7 @@ def main() -> int:
         "--progress",
         type=Path,
         default=None,
-        help="Progress JSON path for resume (default: progress.json in cwd)",
+        help="Progress JSON path for resume (default: <output>.progress.json, scoped per input)",
     )
     parser.add_argument(
         "--log",
@@ -105,6 +105,8 @@ def main() -> int:
     cfg.OUTPUT_FILE = str(out)
     if args.progress is not None:
         cfg.PROGRESS_FILE = str(args.progress.expanduser().resolve())
+    else:
+        cfg.PROGRESS_FILE = str(out.with_suffix(".progress.json"))
 
     log_path = args.log.expanduser().resolve()
     handlers: list[logging.Handler] = [
